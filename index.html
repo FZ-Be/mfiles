@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" href="img/favicon.ico" />
+        <title>M-Files Application</title>
+        <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>       
+        <style>
+            html {
+                position: relative;
+                min-height: 100%;
+            }
+            body {
+                font-family: "Lato", sans-serif;
+                margin-bottom: 60px;
+            }
+            .main {
+                padding: 10px 0px 10px 0px;
+                margin-top: 130px;
+
+            }
+            .form .col-sm-12{
+                /*background-color: rgb(209, 209, 209);*/
+                background-color:  #D7D9DB;
+                border-radius: 5px;
+            }
+            .login-form{
+                padding: 2% 2% 2% 2%;
+            }
+            @media screen and (min-width: 768px){
+                .main{
+                    margin-left: 30%;
+                    margin-top: 200px;
+                    width: 70%;
+                }
+                .login-form{
+                    margin-top: 5%;
+                }
+            }
+            .login-form .btn{
+                width: 30%;
+                color:white;
+                background-color: #fc7c1f;
+
+            }
+            .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px; 
+            line-height: 60px; 
+            background-color: #f5f5f5;
+            }
+            .header{
+                width:100%;
+                height:100px;
+                position:absolute;
+                top:0;
+                left:0;   
+                vertical-align: middle;
+                background:rgb(25,80,134) url(img/MFILEs_logo_blue.jpg) center center no-repeat;
+                /*couleur du logo bleu M-Files rgb(25,80,134) */
+                background-size: 300px;
+                background-attachment: auto;
+                transition:all 0.2s ease-in-out;
+                z-index:-50;
+                opacity:95%;
+                color:white;
+            }
+
+        </style>
+
+        <!--script pour authnetifier mfws avec token-->
+        <script type="text/javascript" language="javascript">
+                function authenticate() {
+
+                    var username = document.forms["m-form"]["login"].value;
+                    var password = document.forms["m-form"]["password"].value;
+                    var vault = document.forms["m-form"]["vault"].value;
+                    var obj = { "Username": username , "Password": password, "VaultGuid": vault };
+                    var parameters = JSON.stringify(obj);
+                    console.log("parameters "+parameters);
+
+
+                    var xmlhttp = new XMLHttpRequest();
+                    xmlhttp.withCredentials = false;                  
+                    xmlhttp.onreadystatechange = function () { 
+                        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                            var jsonToken = JSON.parse(this.responseText);
+                            var token = jsonToken.Value;
+                            console.log("token "+token);
+                            verifyToken(token);
+                        }
+                        else {console.log("Failed authentication.");
+                            }
+                    }
+                    xmlhttp.open("POST", "http://localhost:80/REST/server/authenticationtokens", true);
+                    xmlhttp.setRequestHeader("Content-Type", "application/json");
+                    xmlhttp.send(parameters);
+                }
+
+                function verifyToken(tokenV){
+                    var xmlhttp = new XMLHttpRequest();
+                    xmlhttp.withCredentials = false;                    
+
+                    xmlhttp.onreadystatechange = function () { 
+                        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                            var jsonUser = JSON.parse(this.responseText);
+                            if(jsonUser.hasOwnProperty('ExceptionName')){
+                                console.log("Failed token verification.");
+                                alert("Vérification du token. Erreur: Données incorrectes, réessayez.");
+                            }
+                            else if(jsonUser.hasOwnProperty('AuthenticationType')) {
+                                console.log("Token verified.");
+                                window.location.replace('welcome.html?token='+tokenV);
+                            }
+                        }
+                    }
+                    xmlhttp.open("GET", "http://localhost/REST/session", true);
+                    xmlhttp.setRequestHeader("Content-Type", "application/json");
+                    xmlhttp.setRequestHeader("X-Authentication", tokenV);
+                    xmlhttp.send();
+                }
+        </script>    
+
+    </head>
+    <body>
+        <header class="header">
+        </header>
+        <div class="main form">
+            <div class="col-md-6 col-sm-12">
+                <div class="login-form">
+                    <form id="m-form">
+                        <h4  align="center"><b>Connectez-vous avec un compte <br><i>M-Files</i></b></h4>
+                        <div class="form-group">
+                            <label > <b> Login</b></label>
+                            <input type="text" name="login" class="form-control" placeholder="Votre login">
+                        </div>
+                        <div class="form-group">
+                            <label><b>Password</b></label>
+                            <input type="password" name="password" class="form-control" placeholder="Votre mot de passe">
+                        </div>
+                        <div class="form-group">
+                            <label><b>Coffre</b></label>
+                            <input type="text" name="vault" class="form-control" placeholder="GUID du coffre">
+                        </div>
+                        <div class="form-group text-center">
+                            <input type="button" value="Log in" class="btn" onclick="authenticate()">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <br/><br/><br/>
+        <footer class="footer">
+            <div class="container text-center">
+                <span class="text-muted" >Powered by <img src="img/logo2x.png" alt="M-Files." style ="height: 20px;"/></span>
+            </div>
+          </footer>
+    </body>
+</html>

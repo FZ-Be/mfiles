@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" href="img/favicon.ico" />
+        <title>M-Files Application</title>
+        <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  
+        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>    
+        <style>
+            html {
+                position: relative;
+                min-height: 100%;
+            }
+            body {
+                font-family: "Lato", sans-serif;
+                margin-bottom: 60px;
+            }
+            .main {
+                margin-top: 130px;
+                margin-left: 5px;
+            }
+            .container{
+                width:100%;
+            }
+            .profile-sidebar {
+                padding: 20px 0 0px 0;
+                background: rgb(255, 255, 255);
+                width:120%;
+                height: 100%;
+            }
+            .profile-usertitle {
+                text-align: center;
+                margin-top: 20px;
+            }
+            .profile-usertitle-name {
+                text-transform: uppercase;
+                color: #187510;
+                font-size: 20px;
+                font-weight: 800;
+                margin-bottom: 7px;
+            }
+            .profile-usertitle-account {
+                color: #5b9bd1;
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 15px;
+            }
+            .profile-usertitle-vault{
+                color: #26669b;
+                font-size: 10px;
+                font-weight: 400;
+            }
+            .profile-usermenu {
+            margin-top: 30px;
+            }
+
+            .profile-usermenu ul li {
+            border-bottom: 1px solid #f0f4f7;
+            }
+
+            .profile-usermenu ul li:last-child {
+            border-bottom: none;
+            }
+
+            .profile-usermenu ul li a {
+            color: #93a3b5;
+            font-size: 14px;
+            font-weight: 400;
+            text-align: left;
+            }
+
+            .profile-usermenu ul li a i {
+            margin-right: 8px;
+            font-size: 14px;
+            }
+
+            .profile-usermenu ul li a:hover {
+            background-color: #fafcfd;
+            color: #5b9bd1;
+            }
+
+            .profile-usermenu ul li a.active {
+            border-bottom: none;
+            }
+
+            .profile-usermenu ul li a.active {
+            color: #5b9bd1;
+            background-color: #f6f9fb;
+            border-left: 2px solid #5b9bd1;
+            margin-left: -2px;
+            }
+            .profile-usermenu ul li a.inactive {
+            color: #93a3b5;
+            font-size: 14px;
+            font-weight: 400;
+            text-align: left;
+            }
+            .profile-content {
+            padding: 20px;
+            background: #fff;
+            min-height: 460px;
+            }
+
+            #content button{
+                color:white;
+                background-color: #26669b;
+            }
+            #object button{
+                color:white;
+                background-color: #26669b;   
+            }
+            #object{
+                background-color: #f5f5f5;
+            }
+            .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px; 
+            line-height: 60px; 
+            background-color: #f5f5f5;
+            }
+            .header{
+                width:100%;
+                height:100px;
+                position:absolute;
+                top:0;
+                left:0;   
+                vertical-align: middle;
+                background:rgb(25,80,134) url(img/MFILEs_logo_blue.jpg) center center no-repeat;
+                /*couleur du logo bleu M-Files rgb(25,80,134) */
+                background-size: 300px;
+                background-attachment: auto;
+                transition:all 0.2s ease-in-out;
+                z-index:-50;
+                opacity:95%;
+                color:white;
+            }
+        </style>
+        <script src="js/objects.js" type="text/javascript" language="javascript"></script>
+    </head>
+    <body onload="getUser();">
+        <header class="header">
+        </header>
+
+        <div class="main">
+            <div class="container">
+                <div class="row profile">
+                    <div class="col-md-3">
+                        <div class="profile-sidebar">
+                            <div class="profile-usertitle">
+                                <div class="profile-usertitle-name" id="fname">
+                                </div>
+                                <div class="profile-usertitle-account" id="accname">                             
+                                </div>
+                                <div class="profile-usertitle-vault" id="vname">                             
+                                </div>
+                                <button type="button" class="btn btn-danger btn-sm" id="btnDecon" >Déconnexion</button>
+                                <script type="text/javascript">
+                                    document.getElementById("btnDecon").onclick = function () {
+                                        location.href = "index.html";
+                                    };
+                                </script>
+                            </div>
+                            <div class="profile-usermenu">
+                                <ul class="nav">
+                                    <li>
+                                        <a role="button" class="btn" id="taches" onclick="getTaskToMe();">
+                                        <i class="glyphicon glyphicon-copy"></i> 
+                                        Tâches affectées à moi </a>
+                                    </li>
+                                    <li>
+                                        <a role="button" class="btn" id="clients" onclick="getClients();">
+                                        <i class="glyphicon glyphicon-user"></i>
+                                        Clients </a>
+                                    </li>           
+                                    <li>
+                                        <a role="button" id="factures" class="btn" onclick="getFactures();">
+                                        <i class="glyphicon glyphicon-folder-open"></i>
+                                        Factures </a>
+                                    </li>
+                                    <li>
+                                        <a role="button" id="rapports" class="btn" onclick="getRapportsF();">
+                                        <i class="glyphicon glyphicon-tasks"></i>
+                                        Rapports financiers</a>
+                                    </li>
+                                    <li>
+                                        <a role="button" class="btn" id="workflow" onclick="getWorkflow();">
+                                        <i class="glyphicon glyphicon-blackboard"></i>
+                                        Workflow </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="profile-content" align="left" id="content">
+                            <h1 align="center" style="color:#1c72b9;">Bienvenue au service web <img src="img/MFiles_logo.png" alt="M-Files"></h1>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="object-content" id="object">
+                        </div>
+                    </div>
+                </div>
+        </div>
+
+        <br/><br/><br/>
+        <footer class="footer">
+            <div class="container text-center">
+                <span class="text-muted" >Powered by <img src="img/logo2x.png" alt="M-Files." style ="height: 20px;"/></span>
+            </div>
+        </footer>
+
+    </body>
+</html>
