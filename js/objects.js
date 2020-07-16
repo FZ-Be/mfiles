@@ -394,16 +394,37 @@ function formatFact(ID){
 
 function dlFile(objT, obID, fileID){
 
+    
     var token = getTokenURL();
     //premiere requete pour recevoir l'ID
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.withCredentials = false;
     xmlhttp.addEventListener("readystatechange", function() {
         if(this.readyState === 4) {
-        console.log(this.responseText);            
-        var data = "text/json;charset=utf-8," + encodeURIComponent(this.responseText);
+                if(this.readyState == this.HEADERS_RECEIVED) {
+                    // Get the raw header string
+                    var header = this.getResponseHeader("Content-Disposition");    
+                    var arr = header.trim().split(/[\r\n]+/);
+                    // Create a map of header names to values
+                    var headerMap = {};
+                    arr.forEach(function (line) {
+                        var parts = line.split(': ');
+                        var header = parts.shift();
+                        var value = parts.join(': ');
+                        headerMap[header] = value;     
+                    });  
+                    console.log(this.headerMap["filename"]);                
+                }   
+            var element = document.createElement('a');
+            element.setAttribute('href','data:*;charset=utf-8,'+encodeURIComponent(this.responseText));
+            element.setAttribute('download', this.headerMap["filename"]);
+            element.style.display = 'none';
+            document.body.appendChild(element);    
+            element.click();
+            document.body.removeChild(element);
+
         }
-    });
+    });  
     xmlhttp.open("GET", "http://localhost/REST/objects/"+objT+"/"+obID+"/latest/"+fileID+"/content");
     xmlhttp.setRequestHeader("X-Authentication", token);
     xmlhttp.setRequestHeader("Content-Type", "application/json");
