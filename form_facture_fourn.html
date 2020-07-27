@@ -1,0 +1,43 @@
+<head>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>  
+    <script src="js/create.js" type="text/javascript" language="javascript"></script>
+</head>
+<body>
+    <div class="create-form">
+        <form id="fact-form">
+            <h4  align="center"><b>Créer document facture <i>fournisseur</i></b></h4>
+
+            <div class="form-group">
+                <label for="fact-titre"><b>Nom ou Titre</b></label>
+                <input type="text" class="form-control" name="fact-titre" id="fact-titre"  placeholder="Nom ou titre" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fact-date-d"><b>Date du document</b></label>
+                <input type="date" class="form-control" name="fact-date-d" id="fact-date-d" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fact-mots-cles"><b>Mots-clés séparés par ';'</b></label>
+                <input type="text" class="form-control" name="fact-mots-cles" id="fact-mots-cles" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fact-descr"><b>Description</b></label>
+                <input type="textarea" class="form-control" name="fact-descr" id="fact-descr" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fact-file"><b>Fichier de la facture</b></label>
+                <input name="file" type="file" id="fact-file"  required>
+            </div>
+        
+            <div class="form-group text-center">
+                <input type="button" value="Créer Facture" class="btn" onclick='fileUP(`fournisseur`);'>
+            </div>
+        </form>
+    </div>
+    <div id="fact-created"></div>
+</body>

@@ -65,44 +65,39 @@
             border-bottom: none;
             }
 
-            .profile-usermenu ul li a {
-            color: #93a3b5;
-            font-size: 14px;
-            font-weight: 400;
-            text-align: left;
-            }
-
             .profile-usermenu ul li a i {
             margin-right: 8px;
             font-size: 14px;
             }
 
-            .profile-usermenu ul li a:hover {
-            background-color: #fafcfd;
-            color: #5b9bd1;
-            }
-            .profile-usermenu ul li a.active {
-            color: #5b9bd1;
-            background-color: #f6f9fb;
-            border-left: 2px solid #5b9bd1;
-            margin-left: -2px;
-            border-bottom: none;
-            }
-            .profile-usermenu ul li a#create {
+            .profile-usermenu ul li a {
             color: #78a174;
             font-size: 14px;
             font-weight: 400;
             text-align: left;
             }
-            .profile-usermenu ul li a#create:hover {
+            .profile-usermenu ul li a:hover {
             background-color: #fafcfd;
             color: #187510;
             }
-            .profile-usermenu ul li a#create.active  {
-            background-color: #ecffec;
+            .profile-usermenu ul li a.active  {
+            background-color: #f3fff1;
             border-left: 2px solid #187510;
             color: #187510;
             }
+            .profile-usermenu ul li a#accueil {
+            color: #93a3b5;
+            font-size: 14px;
+            font-weight: 400;
+            text-align: left;
+            }
+            .profile-usermenu ul li a#accueil:hover {
+            background-color: #fafcfd;
+            color: #5b9bd1;
+            }
+
+
+
             .profile-content {
             padding: 20px;
             background: #fff;
@@ -145,12 +140,12 @@
                 color:white;
             }
         </style>
-        <script src="js/objects.js" type="text/javascript" language="javascript"></script>
+        <script src="js/create.js" type="text/javascript" language="javascript"></script>
     </head>
     <body onload="getUser();">
         <header class="header">
         </header>
-
+        
         <div class="main">
             <div class="container">
                 <div class="row profile">
@@ -173,34 +168,36 @@
                             <div class="profile-usermenu">
                                 <ul class="nav">
                                     <li>
-                                        <a role="button" class="btn" id="taches" onclick="getTaskToMe();">
-                                        <i class="glyphicon glyphicon-copy"></i> 
-                                        Tâches affectées à moi </a>
+                                        <a role="button" id="accueil" class="btn" onclick="pageWelcome();">
+                                            <i class="glyphicon glyphicon-arrow-left"></i> 
+                                            <i class="glyphicon glyphicon-home"></i>                                 
+                                        Retour à l'accueil</a>
                                     </li>
                                     <li>
-                                        <a role="button" class="btn" id="clients" onclick="getClients();">
-                                        <i class="glyphicon glyphicon-user"></i>
-                                        Clients </a>
+                                        <a role="button" class="btn" id="cr_vue" onclick="">
+                                            <i class="glyphicon glyphicon-plus"></i> 
+                                            <i class="glyphicon glyphicon-eye-open"></i>
+                                            Créer Vue 
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a role="button" class="btn" id="cr_client" onclick="">
+                                            <i class="glyphicon glyphicon-plus"></i>
+                                            <i class="glyphicon glyphicon-user"></i>                                        
+                                            Créer Client 
+                                        </a>
                                     </li>           
                                     <li>
-                                        <a role="button" id="factures" class="btn" onclick="getFactures();">
-                                        <i class="glyphicon glyphicon-folder-open"></i>
-                                        Factures </a>
+                                        <a role="button" id="cr_facture" class="btn" onclick="getFactureBtn();">
+                                            <i class="glyphicon glyphicon-plus"></i>
+                                            <i class="glyphicon glyphicon-folder-open"></i>
+                                         Créer Facture</a>
                                     </li>
                                     <li>
-                                        <a role="button" id="rapports" class="btn" onclick="getRapportsF();">
-                                        <i class="glyphicon glyphicon-tasks"></i>
-                                        Rapports financiers</a>
-                                    </li>
-                                    <li>
-                                        <a role="button" class="btn" id="workflow" onclick="getWorkflow();">
-                                        <i class="glyphicon glyphicon-blackboard"></i>
-                                        Workflow </a>
-                                    </li>
-                                    <li>
-                                        <a role="button" class="btn" id="create" onclick="pageCreate();">
-                                        <i class="glyphicon glyphicon-plus"></i>
-                                        Créer objets</a>
+                                        <a role="button" id="cr_rapport" class="btn" onclick="">
+                                            <i class="glyphicon glyphicon-plus"></i>
+                                            <i class="glyphicon glyphicon-tasks"></i>                                 
+                                        Créer rapport financier</a>
                                     </li>
                                 </ul>
                             </div>
@@ -208,7 +205,8 @@
                     </div>
                     <div class="col-md-6">
                         <div class="profile-content" align="left" id="content">
-                            <h1 align="center" style="color:#1c72b9;">Bienvenue au service web <img src="img/MFiles_logo.png" alt="M-Files"></h1>
+                            <!--<button onclick="compatibility()" id="comp">Compatibility</button>-->
+
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -216,7 +214,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>        
         </div>
 
         <br/><br/><br/>
@@ -225,6 +223,5 @@
                 <span class="text-muted" >Powered by <img src="img/logo2x.png" alt="M-Files." style ="height: 20px;"/></span>
             </div>
         </footer>
-
     </body>
 </html>

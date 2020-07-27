@@ -1,0 +1,114 @@
+<head>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>  
+    <script src="js/create.js" type="text/javascript" language="javascript"></script>
+    <script>
+        function getTokenURL(){
+            //get token from current url
+            var vars = {};
+            var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&#]*)/ig, function(m,key,value) {
+                vars[key] = "";
+                vars[key] = value;
+            });
+            if(vars["token"] != ""){
+                return vars["token"];
+            }
+            else return "";
+        }
+        function listeClient(){
+            var token = getTokenURL();
+            document.getElementById("fact-client").innerHTML ="";
+            var xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.addEventListener("readystatechange", function() {
+            if(this.readyState === 4) {
+                var jsonClients = JSON.parse(this.responseText);
+                var arrayClients = new Array();
+                arrayClients = jsonClients.Items;
+                for(var i = 0; i<arrayClients.length; i++){
+                    document.getElementById("fact-client").innerHTML += '<option value="'+arrayClients[i].ObjVer.ID+'">'+arrayClients[i].Title+'</option>';
+                }
+            }
+            });
+
+            xhr.open("GET", "http://localhost/REST/objects/136", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("X-Authentication", token);
+            xhr.send();
+        }
+
+        function listeProjet(){
+            var token = getTokenURL();
+            document.getElementById("fact-projet").innerHTML ="";
+            var xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.addEventListener("readystatechange", function() {
+            if(this.readyState === 4) {
+                var jsonProjets = JSON.parse(this.responseText);
+                var arrayProjets = new Array();
+                arrayProjets = jsonProjets.Items;
+                for(var i = 0; i<arrayProjets.length; i++){
+                    document.getElementById("fact-projet").innerHTML += '<option value="'+arrayProjets[i].ObjVer.ID+'">'+arrayProjets[i].Title+'</option>';
+                }
+            }
+            });
+
+            xhr.open("GET", "http://localhost/REST/objects/101", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("X-Authentication", token);
+            xhr.send();
+        }
+
+    </script>
+</head>
+<body onload="listeClient();listeProjet();">
+
+    <div class="create-form">
+        <form id="fact-form">
+            <h4  align="center"><b>Créer document facture <i>client</i></b></h4>
+            <div class="form-group">
+                <label for="fact-titre"><b>Nom ou Titre</b></label>
+                <input type="text" class="form-control" name="fact-titre" id="fact-titre"  placeholder="(Automatique)" disabled>
+            </div>
+
+            <div class="form-group">
+                <label for="fact-date-d"><b>Date du document</b></label>
+                <input type="date" class="form-control" name="fact-date-d" id="fact-date-d"  required>
+            </div>
+
+            <div class="form-group">
+                <label for="fact-client"><b>Client</b></label>
+                <select class="form-control" name="fact-client" id="fact-client" required>            
+                </select>
+
+            </div>
+
+            <div class="form-group">
+                <label for="fact-projet"><b>Projet</b></label>
+                <select class="form-control" name="fact-projet" id="fact-projet" required>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fact-mots-cles"><b>Mots-clés séparés par ';'</b></label>
+                <input type="text" class="form-control" name="fact-mots-cles" id="fact-mots-cles" placeholder="Mots-clés de facture" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fact-descr"><b>Description</b></label>
+                <input type="textarea" class="form-control" name="fact-descr" id="fact-descr" placeholder="Description de facture" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fact-file"><b>Fichier de la facture</b></label>
+                <input name="file" type="file" id="fact-file"  required>
+            </div>
+        
+            <div class="form-group text-center">
+                <input type="button" value="Créer Facture" class="btn" onclick='fileUP(`client`);'>
+            </div>
+        </form>
+    </div>
+    <div id="fact-created"></div>
+</body>
