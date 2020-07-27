@@ -37,15 +37,15 @@ function getUser(){
 function getVault(tokenV){
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.withCredentials = false;                  
-    var url = "http://localhost/REST/session/vaults";
+    var url = "http://localhost/REST/session/vault";
     
     xmlhttp.onreadystatechange = function () { 
         if (xmlhttp.readyState == 4) {
             //console.log(this.responseText);
             var jsonVault = JSON.parse(this.responseText);
-            jsonVault[0].GUID = jsonVault[0].GUID.replace("{", "");
-            jsonVault[0].GUID = jsonVault[0].GUID.replace("}", "");
-            document.getElementById("vname").innerHTML = "<h4> <img src='img/vault_s1_blue.png' alt='Coffre: '>  "+jsonVault[0].Name+"</h4>"+jsonVault[0].GUID;
+            jsonVault.GUID = jsonVault.GUID.replace("{", "");
+            jsonVault.GUID = jsonVault.GUID.replace("}", "");
+            document.getElementById("vname").innerHTML = "<h4> <img src='img/vault_s1_blue.png' alt='Coffre: '>  "+jsonVault.Name+"</h4>"+jsonVault.GUID;
         }
         else {
             console.log("Failed to get vault info.");
@@ -62,6 +62,112 @@ function formatUser(jU){
     document.getElementById("accname").innerHTML = "<h5>"+jU.AccountName+" ID: "+jU.UserID+"</h5>";
 }
 ///////////////////////////////////////////////////////////////////////////////////////
+
+//onclick boutonn tâches affectées à moi sur le menu à gauche
+function getTaskToMe(){
+    var token = getTokenURL();
+    //premiere requete pour recevoir l'ID
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.withCredentials = false;
+    xmlhttp.addEventListener("readystatechange", function() {
+    if(this.readyState === 4) {
+        var jsonU = JSON.parse(this.responseText);
+        var ID = jsonU.UserID;
+
+        //requete asynch dans une requete asynch pour faire passage de l'ID à requete des tâches
+        var XHR = new XMLHttpRequest();
+        XHR.withCredentials = false;
+
+        XHR.addEventListener("readystatechange", function() {
+            if(this.readyState === 4) {
+                var json = JSON.parse(this.responseText);
+                var arrayTasks = new Array();
+                arrayTasks = json.Items;
+                arrayTasks.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
+                formatTaskList(arrayTasks, arrayTasks.length);
+            }
+            });
+            XHR.open("GET", "http://localhost/REST/objects/10?p44"+ID);
+            XHR.setRequestHeader("X-Authentication", token);
+            XHR.setRequestHeader("Content-Type", "application/json");
+            XHR.send();
+        }
+
+    });
+    xmlhttp.open("GET", "http://localhost/REST/session");
+    xmlhttp.setRequestHeader("X-Authentication", token);
+    xmlhttp.setRequestHeader("Content-Type", "application/json");
+    xmlhttp.send();
+}
+
+function formatTaskList(array, length){
+    document.getElementById("taches").className="btn active";
+    document.getElementById("clients").className="btn";
+    document.getElementById("workflow").className="btn";
+    document.getElementById("factures").className="btn";
+    document.getElementById("rapports").className="btn";
+    document.getElementById("create").className="btn";
+
+
+    document.getElementById("object").innerHTML="";
+    document.getElementById("content").innerHTML = "";
+    document.getElementById("content").innerHTML +="<h2 align='center'>Liste des tâches affectées à vous </h2><ul id='liste-taches'></ul>";
+    if(length==0){        
+        document.getElementById("liste-taches").innerHTML ='<dt><dd style="color:black;">Aucune tâche à afficher.</dd></dt>';
+    }
+    else{
+        for (var i = 0; i < length; i++) {
+            document.getElementById("liste-taches").innerHTML +=`<a role="button" class="btn" style="text-align: left;" onclick="formatTask(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
+        } 
+    }
+
+}
+
+function formatTask(ID){
+    document.getElementById("object").innerHTML="";
+    document.getElementById("object").innerHTML +="<h3 align='center'>Propriétés</h3>";
+
+    var XHR = new XMLHttpRequest();
+    XHR.withCredentials = false;
+
+    XHR.addEventListener("readystatechange", function() {
+        if(this.readyState === 4) {
+            //console.log(this.responseText);
+            var jsonTask = JSON.parse(this.responseText);
+            var respArray = jsonTask.Properties;
+            var N = respArray.length;
+
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.withCredentials = false;
+
+            xmlhttp.addEventListener("readystatechange", function() {
+                if(this.readyState === 4) {
+                    //console.log(this.responseText);
+                    var propArray = JSON.parse(this.responseText);
+                    var M = propArray.length;
+                    for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
+                        for(var j = 0; j<M; j++){//boucle dans /structure/propriete
+                            if(respArray[i].PropertyDef == propArray[j].ID){
+                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+respArray[i].TypedValue.Value+"</p>";
+                            }
+                        }
+                    }
+                }
+            });
+            xmlhttp.open("GET", "http://localhost/REST/structure/properties");
+            xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
+            xmlhttp.setRequestHeader("Content-Type", "application/json");
+            xmlhttp.send();
+
+        }
+    });
+    XHR.open("GET", "http://localhost/REST/objects/10/"+ID+"?include=properties");
+    XHR.setRequestHeader("X-Authentication", getTokenURL());
+    XHR.setRequestHeader("Content-Type", "application/json");
+    XHR.send();
+}
+
+
 //onclick boutonn Clients sur le menu à gauche
 function getClients(){
     var token = getTokenURL();
@@ -72,6 +178,7 @@ function getClients(){
         var jsonClients = JSON.parse(this.responseText);
         var arrayClients = new Array();
         arrayClients = jsonClients.Items;
+        arrayClients.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
         //console.log("number of items "+arrayClients.length);
         //console.log(arrayClients[0].Title+" "+arrayClients[0].ObjVer.ID);
         formatClientList(arrayClients, arrayClients.length);
@@ -89,6 +196,8 @@ function formatClientList(array, length){
     document.getElementById("workflow").className="btn";
     document.getElementById("factures").className="btn";
     document.getElementById("rapports").className="btn";
+    document.getElementById("create").className="btn";
+
 
 
     document.getElementById("content").innerHTML = "";
@@ -152,108 +261,6 @@ function formatClient(cliID){
 
 }
 
-//onclick boutonn tâches affectées à moi sur le menu à gauche
-function getTaskToMe(){
-    var token = getTokenURL();
-    //premiere requete pour recevoir l'ID
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.withCredentials = false;
-    xmlhttp.addEventListener("readystatechange", function() {
-    if(this.readyState === 4) {
-        var jsonU = JSON.parse(this.responseText);
-        var ID = jsonU.UserID;
-
-        //requete asynch dans une requete asynch pour faire passage de l'ID à requete des tâches
-        var XHR = new XMLHttpRequest();
-        XHR.withCredentials = false;
-
-        XHR.addEventListener("readystatechange", function() {
-            if(this.readyState === 4) {
-                var json = JSON.parse(this.responseText);
-                var arrayTasks = new Array();
-                arrayTasks = json.Items;
-                formatTaskList(arrayTasks, arrayTasks.length);
-            }
-            });
-            XHR.open("GET", "http://localhost/REST/objects/10?p44"+ID);
-            XHR.setRequestHeader("X-Authentication", token);
-            XHR.setRequestHeader("Content-Type", "application/json");
-            XHR.send();
-        }
-
-    });
-    xmlhttp.open("GET", "http://localhost/REST/session");
-    xmlhttp.setRequestHeader("X-Authentication", token);
-    xmlhttp.setRequestHeader("Content-Type", "application/json");
-    xmlhttp.send();
-}
-
-function formatTaskList(array, length){
-    document.getElementById("taches").className="btn active";
-    document.getElementById("clients").className="btn";
-    document.getElementById("workflow").className="btn";
-    document.getElementById("factures").className="btn";
-    document.getElementById("rapports").className="btn";
-
-    document.getElementById("object").innerHTML="";
-    document.getElementById("content").innerHTML = "";
-    document.getElementById("content").innerHTML +="<h2 align='center'>Liste des tâches affectées à vous </h2><ul id='liste-taches'></ul>";
-    if(length==0){        
-        document.getElementById("liste-taches").innerHTML ='<dt><dd style="color:black;">Aucune tâche à afficher.</dd></dt>';
-    }
-    else{
-        for (var i = 0; i < length; i++) {
-            document.getElementById("liste-taches").innerHTML +=`<a role="button" class="btn" style="text-align: left;" onclick="formatTask(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
-        } 
-    }
-
-}
-
-function formatTask(ID){
-    document.getElementById("object").innerHTML="";
-    document.getElementById("object").innerHTML +="<h3 align='center'>Propriétés</h3>";
-
-    var XHR = new XMLHttpRequest();
-    XHR.withCredentials = false;
-
-    XHR.addEventListener("readystatechange", function() {
-        if(this.readyState === 4) {
-            //console.log(this.responseText);
-            var jsonTask = JSON.parse(this.responseText);
-            var respArray = jsonTask.Properties;
-            var N = respArray.length;
-
-            var xmlhttp = new XMLHttpRequest();
-            xmlhttp.withCredentials = false;
-
-            xmlhttp.addEventListener("readystatechange", function() {
-                if(this.readyState === 4) {
-                    //console.log(this.responseText);
-                    var propArray = JSON.parse(this.responseText);
-                    var M = propArray.length;
-                    for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
-                        for(var j = 0; j<M; j++){//boucle dans /structure/propriete
-                            if(respArray[i].PropertyDef == propArray[j].ID){
-                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+respArray[i].TypedValue.Value+"</p>";
-                            }
-                        }
-                    }
-                }
-            });
-            xmlhttp.open("GET", "http://localhost/REST/structure/properties");
-            xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
-            xmlhttp.setRequestHeader("Content-Type", "application/json");
-            xmlhttp.send();
-
-        }
-    });
-    XHR.open("GET", "http://localhost/REST/objects/10/"+ID+"?include=properties");
-    XHR.setRequestHeader("X-Authentication", getTokenURL());
-    XHR.setRequestHeader("Content-Type", "application/json");
-    XHR.send();
-}
-
-
 //bouton factures onclick
 //////////////////////////////////////
 function getFactures(){
@@ -262,6 +269,8 @@ function getFactures(){
     document.getElementById("workflow").className="btn";
     document.getElementById("factures").className="btn active";
     document.getElementById("rapports").className="btn";
+    document.getElementById("create").className="btn";
+
 
     document.getElementById("object").innerHTML="";
     document.getElementById("content").innerHTML = "";
@@ -284,6 +293,7 @@ function getFClients(){
         if(this.readyState === 4) {
             var jsonf = JSON.parse(this.responseText);
             var array = jsonf.Items;
+            array.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
             var length = array.length;            
             document.getElementById("liste-factures").innerHTML = "";
             if(length==0){        
@@ -318,6 +328,7 @@ function getFFourn(){
         if(this.readyState === 4) {
             var jsonf = JSON.parse(this.responseText);
             var array = jsonf.Items;
+            array.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
             var length = array.length;            
             document.getElementById("liste-factures").innerHTML = "";
             if(length==0){        
@@ -380,7 +391,7 @@ function formatFact(ID){
             var F = fileArray.length;
             for(var k = 0;  k<F;k++){
                 var fileID = fileArray[k].ID;
-                document.getElementById("object").innerHTML += '<p><b>Nom: </b>'+fileArray[k].Name+'<br><b>Taille: </b>'+fileArray[k].Size+'<br/><button class=btn id="dl-f" onclick="dlFile(0, '+ID+', '+fileID+')">Télecharger</button></p><br/><br/>';
+                document.getElementById("object").innerHTML += '<p><b>Nom: </b>'+fileArray[k].Name+'<br><b>ID: </b>'+fileArray[k].ID+'<br><b>Version: </b>'+fileArray[k].Version+'<br><b>Taille: </b>'+fileArray[k].Size+'<br/><button class=btn id="dl-f" onclick="dlFile(0, '+ID+', '+fileID+')">Télecharger</button></p><br/><br/>';
 
             }
         }
@@ -441,6 +452,8 @@ function getRapportsF(){
     document.getElementById("workflow").className="btn";
     document.getElementById("factures").className="btn";
     document.getElementById("rapports").className="btn active";
+    document.getElementById("create").className="btn";
+
 
     document.getElementById("object").innerHTML="";
     document.getElementById("content").innerHTML = "";
@@ -455,6 +468,7 @@ function getRapportsF(){
         if(this.readyState === 4) {
             var jsonf = JSON.parse(this.responseText);
             var array = jsonf.Items;
+            array.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
             var length = array.length;            
             document.getElementById("liste-rapports").innerHTML = "";
             if(length==0){        
@@ -519,7 +533,7 @@ function formatRapport(ID){
             var F = fileArray.length;
             for(var k = 0;  k<F;k++){
                 var fileID = fileArray[k].ID;
-                document.getElementById("object").innerHTML += '<p><b>Nom: </b>'+fileArray[k].Name+'<br><b>Taille: </b>'+fileArray[k].Size+'<br/><button class=btn onclick="dlFile(0, '+ID+', '+fileID+')">Télecharger</button></p><br/><br/>';
+                document.getElementById("object").innerHTML += '<p><b>Nom: </b>'+fileArray[k].Name+'<br><b>ID: </b>'+fileArray[k].ID+'<br><b>Version: </b>'+fileArray[k].Version+'<br><b>Taille: </b>'+fileArray[k].Size+'<br/><button class=btn onclick="dlFile(0, '+ID+', '+fileID+')">Télecharger</button></p><br/><br/>';
 
             }
         }
@@ -539,6 +553,8 @@ function getWorkflow(){
     document.getElementById("workflow").className="btn active";
     document.getElementById("factures").className="btn";
     document.getElementById("rapports").className="btn";
+    document.getElementById("create").className="btn";
+
 
     document.getElementById("object").innerHTML="";
     document.getElementById("content").innerHTML = "";
@@ -553,6 +569,7 @@ function getWorkflow(){
     xmlhttp.addEventListener("readystatechange", function() {
         if(this.readyState === 4) {
             var jsonArr = JSON.parse(this.responseText);
+            jsonArr.sort((a, b) => parseFloat(b.ID) - parseFloat(a.ID));
             var length = jsonArr.length;            
             if(length==0){        
                 document.getElementById("liste-wf").innerHTML ='<dt><dd style="color:black;">Aucun workflow à afficher.</dd></dt>';
@@ -585,7 +602,9 @@ function formatWF(wfID){
                 if(this.readyState === 4) {
                     //console.log(this.responseText);
                     var jsonArr = JSON.parse(this.responseText);
-                    var length = jsonArr.length;            
+                    var length = jsonArr.length;   
+                    jsonArr.sort((a, b) => parseFloat(b.ID) - parseFloat(a.ID));
+         
                     if(length==0){        
                         document.getElementById("liste-next-states").innerHTML ='<dt><dd style="color:black;font-size:1.4em;">Aucun état workflow à afficher.</dd></dt>';
                     }
@@ -605,5 +624,10 @@ function formatWF(wfID){
             XHR.setRequestHeader("X-Authentication", token);
             XHR.setRequestHeader("Content-Type", "application/json");
             XHR.send();
+
+}
+
+function pageCreate(){
+    window.location.replace('create.html?token='+getTokenURL());
 
 }
