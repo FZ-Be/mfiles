@@ -1,0 +1,41 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>  
+    <script src="js/create.js" type="text/javascript" language="javascript"></script>
+</head>
+<body style="font-size: small;">
+
+        <form id="rapp-form">
+            <h4  align="center"><b>Créer un document rapport <i>financier</i></b></h4>
+            <div class="form-group">
+                <label for="rapp-titre"><b>Nom ou Titre</b></label>
+                <input type="text" class="form-control" name="rapp-titre" id="rapp-titre"  placeholder="Nom ou titre" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rapp-date-d"><b>Date du document</b></label>
+                <input type="date" class="form-control" name="rapp-date-d" id="rapp-date-d"  required>
+            </div>
+
+            <div class="form-group">
+                <label for="rapp-mots-cles"><b>Mots-clés séparés par ';'</b></label>
+                <input type="text" class="form-control" name="rapp-mots-cles" id="rapp-mots-cles" placeholder="Mots-clés du rapport" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rapp-descr"><b>Description</b></label>
+                <input type="textarea" class="form-control" name="rapp-descr" id="rapp-descr" placeholder="Description du rapport" required>
+            </div>
+
+            <div class="form-group">
+                <label for="doc-file"><b>Fichier du rapport financier</b></label>
+                <input name="file" type="file" id="doc-file"  required>
+            </div>
+        
+            <div class="form-group text-center">
+                <input type="button" value="Créer Rapport Financier" class="btn" onclick='fileUP(`rapportfin`);'>
+            </div>
+        </form>
+    <div id="rapp-created"></div>
+</body>

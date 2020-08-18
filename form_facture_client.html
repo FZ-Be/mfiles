@@ -1,7 +1,7 @@
 <head>
-    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  
-    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>  
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>  
     <script src="js/create.js" type="text/javascript" language="javascript"></script>
     <script>
         function getTokenURL(){
@@ -62,7 +62,7 @@
 
     </script>
 </head>
-<body onload="listeClient();listeProjet();">
+<body onload="listeClient();listeProjet();" style="font-size: medium;">
 
     <div class="create-form">
         <form id="fact-form">
@@ -92,17 +92,17 @@
 
             <div class="form-group">
                 <label for="fact-mots-cles"><b>Mots-clés séparés par ';'</b></label>
-                <input type="text" class="form-control" name="fact-mots-cles" id="fact-mots-cles" placeholder="Mots-clés de facture" required>
+                <input type="text" class="form-control" name="fact-mots-cles" id="fact-mots-cles" placeholder="Mots-clés du facture" required>
             </div>
 
             <div class="form-group">
                 <label for="fact-descr"><b>Description</b></label>
-                <input type="textarea" class="form-control" name="fact-descr" id="fact-descr" placeholder="Description de facture" required>
+                <input type="textarea" class="form-control" name="fact-descr" id="fact-descr" placeholder="Description du facture" required>
             </div>
 
             <div class="form-group">
-                <label for="fact-file"><b>Fichier de la facture</b></label>
-                <input name="file" type="file" id="fact-file"  required>
+                <label for="doc-file"><b>Fichier de la facture</b></label>
+                <input name="file" type="file" id="doc-file"  required>
             </div>
         
             <div class="form-group text-center">

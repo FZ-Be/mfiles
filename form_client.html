@@ -1,0 +1,103 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <!--<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">-->
+    <!--<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  -->
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>  
+    <script src="js/create.js" type="text/javascript" language="javascript"></script>
+
+    <script>
+        function getTokenURL(){
+            //get token from current url
+            var vars = {};
+            var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&#]*)/ig, function(m,key,value) {
+                vars[key] = "";
+                vars[key] = value;
+            });
+            if(vars["token"] != ""){
+                return vars["token"];
+            }
+            else return "";
+        }
+        //pour afficher liste des pays depuis Liste des Valeurs de M-Files
+        function listePays(){
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.withCredentials = false;
+            xmlhttp.addEventListener("readystatechange", function() {
+                if(this.readyState === 4) {
+                    var jsonPays = JSON.parse(this.responseText);
+                    var arrPays= jsonPays.Items;
+                    var N = arrPays.length;
+                    for (var i = 0; i<N; i++){
+                        document.getElementById("client-pays").innerHTML += "<option value="+arrPays[i].DisplayID+">"+arrPays[i].Name+"</option>"
+                    }
+                }
+            });  
+            xmlhttp.open("GET", "http://localhost/REST/valuelists/154/items", true);
+            xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
+            xmlhttp.setRequestHeader("Content-Type", "application/json");
+            xmlhttp.send();
+        }
+    </script>
+</head>
+
+<body onload="listePays()" style="overflow-x:hidden;font-size: small;">
+        <form id="client-form">
+            <h4  align="center"><b>Créer un objet client</b></h4>
+            <div class="form-group">
+                <label for="client-classe"><b>Classe</b></label>
+                <input type="text" class="form-control" name="client-classe" id="client-classe"  placeholder="Client" disabled>
+            </div>
+
+            <div class="form-group">
+                <label for="client-nom"><b>Nom du Client</b></label>
+                <input type="text" class="form-control" name="client-nom" id="client-nom" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="client-adr-1"><b>Adresse (ligne 1)</b></label>
+                    <input type="text" class="form-control" name="client-adr-1" id="client-adr-1" required>
+                </div>  
+                <div class="form-group col-6">
+                    <label for="client-adr-2"><b>Adresse (ligne 2)</b></label>
+                    <input type="text" class="form-control" name="client-adr-2" id="client-adr-2" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-4">
+                    <label for="client-ville"><b>Ville</b></label>
+                    <input type="text" class="form-control" name="client-ville" id="client-ville" required>
+                </div>
+                <div class="form-group col-4">
+                    <label for="client-region"><b>Region</b></label>
+                    <input type="text" class="form-control" name="client-region" id="client-region" required>
+                </div>
+                <div class="form-group col-4">
+                    <label for="client-pays"><b>Pays</b></label>
+                    <select class="form-control" name="client-pays" id="client-pays" required>
+                    </select>          
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="client-code-postal"><b>Code Postal</b></label>
+                    <input type="text" class="form-control" name="client-code-postal" id="client-code-postal" required>
+                </div>
+                <div class="form-group col-6">
+                    <label for="client-tel"><b>Téléphone</b></label>
+                    <input type="tel" class="form-control" name="client-tel" id="client-tel" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="client-website"><b>Site Web</b></label>
+                <input type="text" class="form-control" name="client-website" id="client-website" required>
+            </div>
+
+            <div class="form-group text-center">
+                <input type="button" value="Créer Client" class="btn" onclick="creeClient();">
+            </div>
+        </form>
+    <div id="client-created"></div>
+</body>
