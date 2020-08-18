@@ -11,6 +11,33 @@ function getTokenURL(){
     }
     else return "";
 }
+
+function getClickSideBar(){
+    //get id of button from current url
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&#]*)/ig, function(m,key,value) {
+        vars[key] = "";
+        vars[key] = value;
+    });
+    if(vars["click"] == "clients"){
+        document.getElementById("clients").click();
+    }
+    else if(vars["click"] == "factureclient"){
+        document.getElementById("factures").click();
+        document.getElementById("fact_cli").click();
+    }
+    else if(vars["click"] == "facturefournisseur"){
+        document.getElementById("factures").click();
+        document.getElementById("fact_fourn").click();
+    }
+    else if(vars["click"] == "rapports"){
+        document.getElementById("rapports").click();
+    }
+    else if(vars["click"] == "workflow"){
+        document.getElementById("workflow").click();
+    }
+}
+
 //utilisation des données de l'utilisateur connecté
 function getUser(){
     var token = getTokenURL();
@@ -148,7 +175,7 @@ function formatTask(ID){
                     for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
                         for(var j = 0; j<M; j++){//boucle dans /structure/propriete
                             if(respArray[i].PropertyDef == propArray[j].ID){
-                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+respArray[i].TypedValue.Value+"</p>";
+                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+respArray[i].TypedValue.DisplayValue+"</p>";
                             }
                         }
                     }
@@ -239,7 +266,7 @@ function formatClient(cliID){
                     for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
                         for(var j = 0; j<M; j++){//boucle dans /structure/propriete
                             if(respArray[i].PropertyDef == propArray[j].ID){
-                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+respArray[i].TypedValue.Value+"</p>";
+                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+respArray[i].TypedValue.DisplayValue+"</p>";
                             }
                         }
                     }
@@ -275,7 +302,7 @@ function getFactures(){
     document.getElementById("object").innerHTML="";
     document.getElementById("content").innerHTML = "";
     document.getElementById("content").innerHTML +="<h2 align='center'>Liste des factures </h2>";
-    document.getElementById("content").innerHTML +='<button align="center" class="btn" onclick="getFClients();" style="width:40%;">Factures Clients</button><button align="center" class="btn" onclick="getFFourn();" style="width:40%;margin-left:15%;">Factures Fournisseurs</button><br/><br/>';
+    document.getElementById("content").innerHTML +='<button align="center" class="btn" onclick="getFClients();" style="width:40%;" id="fact_cli">Factures Clients</button><button align="center" class="btn" onclick="getFFourn();" style="width:40%;margin-left:15%;" id="fact_fourn">Factures Fournisseurs</button><br/><br/>';
 
 }
 function getFClients(){
@@ -375,7 +402,7 @@ function formatFact(ID){
                     for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
                         for(var j = 0; j<M; j++){//boucle dans /structure/propriete
                             if(obPropArray[i].PropertyDef == propArray[j].ID){
-                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+obPropArray[i].TypedValue.Value+"</p>";
+                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+obPropArray[i].TypedValue.DisplayValue+"</p>";
                             }
                         }
                     }
@@ -391,7 +418,7 @@ function formatFact(ID){
             var F = fileArray.length;
             for(var k = 0;  k<F;k++){
                 var fileID = fileArray[k].ID;
-                document.getElementById("object").innerHTML += '<p><b>Nom: </b>'+fileArray[k].Name+'<br><b>ID: </b>'+fileArray[k].ID+'<br><b>Version: </b>'+fileArray[k].Version+'<br><b>Taille: </b>'+fileArray[k].Size+'<br/><button class=btn id="dl-f" onclick="dlFile(0, '+ID+', '+fileID+')">Télecharger</button></p><br/><br/>';
+                document.getElementById("object").innerHTML += '<p><b>Nom: </b>'+fileArray[k].Name+'<br><b>ID: </b>'+fileArray[k].ID+'<br><b>Version: </b>'+fileArray[k].Version+'<br><b>Taille: </b>'+fileArray[k].Size+'<br/><b>Extension: </b>'+fileArray[k].Extension+'<br/><button class=btn id="dl-f" onclick="ouvrirFile(0, '+ID+', '+fileID+')">Ouvrir</button></p><br/><br/>';
 
             }
         }
@@ -403,12 +430,36 @@ function formatFact(ID){
 
 }
 
-function dlFile(objT, obID, fileID){
-
-    
+function ouvrirFile(objT, objID, fileID){
+ 
     var token = getTokenURL();
-    //premiere requete pour recevoir l'ID
+
+    //get vault guid
     var xmlhttp = new XMLHttpRequest();
+    xmlhttp.withCredentials = false;                  
+    var url = "http://localhost/REST/session/vault";
+    
+    xmlhttp.onreadystatechange = function () { 
+        if (xmlhttp.readyState == 4) {
+            //console.log(this.responseText);
+            var jsonVault = JSON.parse(this.responseText);
+            jsonVault.GUID = jsonVault.GUID.replace("{", "");
+            jsonVault.GUID = jsonVault.GUID.replace("}", "");
+
+            //open mfiles url
+            window.open("m-files://open/"+jsonVault.GUID+"/"+objT+"-"+objID+"/"+fileID, '_blank');
+
+        }
+        else {
+            console.log("Failed to get vault info.");
+        }
+    }
+    xmlhttp.open("GET", url, true);
+    xmlhttp.setRequestHeader("Content-Type", "application/json");
+    xmlhttp.setRequestHeader("X-Authentication", token); 
+    xmlhttp.send();
+    //premiere requete pour recevoir l'ID
+   /* var xmlhttp = new XMLHttpRequest();
     xmlhttp.withCredentials = false;
     xmlhttp.addEventListener("readystatechange", function() {
         if(this.readyState === 4) {
@@ -439,7 +490,7 @@ function dlFile(objT, obID, fileID){
     xmlhttp.open("GET", "http://localhost/REST/objects/"+objT+"/"+obID+"/latest/"+fileID+"/content");
     xmlhttp.setRequestHeader("X-Authentication", token);
     xmlhttp.setRequestHeader("Content-Type", "application/json");
-    xmlhttp.send();
+    xmlhttp.send(); */
 
 }
 
@@ -517,7 +568,7 @@ function formatRapport(ID){
                     for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
                         for(var j = 0; j<M; j++){//boucle dans /structure/propriete
                             if(obPropArray[i].PropertyDef == propArray[j].ID){
-                                document.getElementById("object").innerHTML +="<p style='text-align: left;'><b>"+propArray[j].Name+":</b> "+obPropArray[i].TypedValue.Value+"</p>";
+                                document.getElementById("object").innerHTML +="<p style='text-align: left;'><b>"+propArray[j].Name+":</b> "+obPropArray[i].TypedValue.DisplayValue+"</p>";
                             }
                         }
                     }
@@ -533,7 +584,7 @@ function formatRapport(ID){
             var F = fileArray.length;
             for(var k = 0;  k<F;k++){
                 var fileID = fileArray[k].ID;
-                document.getElementById("object").innerHTML += '<p><b>Nom: </b>'+fileArray[k].Name+'<br><b>ID: </b>'+fileArray[k].ID+'<br><b>Version: </b>'+fileArray[k].Version+'<br><b>Taille: </b>'+fileArray[k].Size+'<br/><button class=btn onclick="dlFile(0, '+ID+', '+fileID+')">Télecharger</button></p><br/><br/>';
+                document.getElementById("object").innerHTML += '<p><b>Nom: </b>'+fileArray[k].Name+'<br><b>ID: </b>'+fileArray[k].ID+'<br><b>Version: </b>'+fileArray[k].Version+'<br><b>Taille: </b>'+fileArray[k].Size+'<br/><button class=btn onclick="ouvrirFile(0, '+ID+', '+fileID+')">Ouvrir</button></p><br/><br/>';
 
             }
         }
