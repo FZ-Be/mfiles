@@ -22,8 +22,10 @@ function getUser(){
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             //console.log(this.responseText);
             var jU = JSON.parse(this.responseText);
-            document.getElementById("fname").innerHTML = "<h3>"+jU.FullName+"</h3>";
-            document.getElementById("accname").innerHTML = "<h5>"+jU.AccountName+" ID: "+jU.UserID+"</h5>";    
+            //fonction prend objet json et met ses valeurs dans le code html
+            document.getElementById("fname").innerHTML= "<h3>"+jU.AccountName+" (ID: "+jU.UserID+")</h3>";
+            //document.getElementById("fname").innerHTML = "<h3>"+jU.FullName+"</h3>";
+            //document.getElementById("accname").innerHTML = "<h5>"+jU.AccountName+" ID: "+jU.UserID+"</h5>";    
         }
         else {console.log("Failed to get user info.")
         ;}
@@ -68,7 +70,7 @@ function pageWelcome(){
 
 function getFormCreer(type){
     if (type === `facture`){
-    document.getElementById("cr_vue").className="btn";
+    document.getElementById("cr_tache").className="btn";
     document.getElementById("cr_client").className="btn";
     document.getElementById("cr_facture").className="btn active";
     document.getElementById("cr_rapport").className="btn";
@@ -78,7 +80,7 @@ function getFormCreer(type){
     document.getElementById("content").innerHTML +="<h2 align='center'>Choisissez la classe de document</h2>";
     document.getElementById("content").innerHTML +="<button align='center' class='btn' onclick='getFormFacture(`client`);' style='width:40%;'>Facture Client</button><button align='center' class='btn' onclick='getFormFacture(`fournisseur`);' style='width:40%;margin-left:15%;'>Facture Fournisseur</button><br/><br/>";
     } else if(type === `client`){       
-        document.getElementById("cr_vue").className="btn";
+        document.getElementById("cr_tache").className="btn";
         document.getElementById("cr_client").className="btn active";
         document.getElementById("cr_facture").className="btn";
         document.getElementById("cr_rapport").className="btn";
@@ -88,7 +90,7 @@ function getFormCreer(type){
         document.getElementById("content").innerHTML += '<iframe src="form_client.html?token='+getTokenURL()+'" height=700 width=85% style="border:none;"></iframe>';
 
     } else if(type === `rapportfin`){       
-        document.getElementById("cr_vue").className="btn";
+        document.getElementById("cr_tache").className="btn";
         document.getElementById("cr_client").className="btn";
         document.getElementById("cr_facture").className="btn";
         document.getElementById("cr_rapport").className="btn active";
@@ -96,6 +98,16 @@ function getFormCreer(type){
         //document.getElementById("object").innerHTML="";
         document.getElementById("content").innerHTML = "";
         document.getElementById("content").innerHTML += '<iframe src="form_rapportfin.html?token='+getTokenURL()+'" height=700 width=85% style="border:none;"></iframe>';
+
+    } else if(type === `tache`){       
+        document.getElementById("cr_tache").className="btn active";
+        document.getElementById("cr_client").className="btn";
+        document.getElementById("cr_facture").className="btn";
+        document.getElementById("cr_rapport").className="btn";
+
+        //document.getElementById("object").innerHTML="";
+        document.getElementById("content").innerHTML = "";
+        document.getElementById("content").innerHTML += '<iframe src="form_tache.html?token='+getTokenURL()+'" height=700 width=85% style="border:none;"></iframe>';
 
     }
 }
@@ -327,14 +339,14 @@ function creerRapportFin(upID, size, title, ext){
 
 function getClientBtn(){
 
-    document.getElementById("cr_vue").className="btn";
+    document.getElementById("cr_tache").className="btn";
     document.getElementById("cr_client").className="btn active";
     document.getElementById("cr_facture").className="btn";
     document.getElementById("cr_rapport").className="btn";
 
     //document.getElementById("object").innerHTML="";
     document.getElementById("content").innerHTML = "";
-    document.getElementById("content").innerHTML += '<iframe src="form_client.html?token='+getTokenURL()+'" height=800 width=85% style="border:none;"></iframe>';
+    document.getElementById("content").innerHTML += '<iframe src="form_client.html?token='+getTokenURL()+'" height=700 width=85% style="border:none;"></iframe>';
 }
 
 function creeClient(){
@@ -360,17 +372,75 @@ function creeClient(){
             if(this.readyState === 4) {
                 console.log("Création de l'objet en cours...");
                 console.log(this.responseText);
-                var jsonFact = JSON.parse(this.responseText);
+                var jsonCli = JSON.parse(this.responseText);
 
                 document.getElementById("client-form").reset(); 
                 document.getElementById("client-created").innerHTML = "";
-                document.getElementById("client-created").innerHTML += `<br><p align=center>Le client: `+jsonFact.DisplayID+` au titre: `+jsonFact.Title+` a été créée.<button class="btn btn-info" onclick="window.open('welcome.html?click=clients&token=`+getTokenURL()+`');">Voir client</button></p></br> </p></br>`;
+                document.getElementById("client-created").innerHTML += `<br><p align=center>Le client: `+jsonCli.DisplayID+` au titre: `+jsonCli.Title+` a été créée.<button class="btn btn-info" onclick="window.open('welcome.html?click=clients&token=`+getTokenURL()+`');">Voir client</button></p></br> </p></br>`;
             }
         });  
         xmlhttp.open("POST", "http://localhost/REST/objects/136?checkIn=true", true);
         xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
         xmlhttp.setRequestHeader("Content-Type", "application/json");
         xmlhttp.send(data);
+    }else {
+        alert("Entrez les données correctement.");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                   //
+//                                         Création des taches                                       //
+//                                                                                                   //
+//                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function creerTache(){
+    var f = document.getElementsByTagName('form')[0];
+    if(f.checkValidity()) {
+        var nom = document.getElementById("tache-nom").value;
+        var descr = document.getElementById("tache-descr").value;
+        var affect_a = document.getElementById("tache-affecte-a").value;
+        var echeance = document.getElementById("tache-echeance").value;
+
+
+        var XHR = new XMLHttpRequest();
+        XHR.withCredentials = false;
+            XHR.addEventListener("readystatechange", function() {
+                if(this.readyState === 4) {
+                    console.log("Création de l'objet en cours...");
+                    console.log(this.responseText);
+                    var jU= JSON.parse(this.responseText);
+                    //var myID = jU.UserID;
+                    var myID = jU.Value;
+
+                    var data = JSON.stringify({"PropertyValues":[{"PropertyDef":0,"TypedValue":{"DataType":1,"HasValue": true,"Value":nom}},{"PropertyDef":100,"TypedValue":{"DataType":9,"HasValue": true,"Lookup":{"Item":-100,"Version":-1}}},{"PropertyDef":98,"TypedValue":{"DataType":8,"HasValue":true,"Value":false}},{"PropertyDef":44,"TypedValue":{"DataType":10,"Lookups":[{"Item":affect_a,"Version":-1,"ObjectType": 6,"ObjectFlags":64}]}},{"PropertyDef":43,"TypedValue":{"DataType":10,"Lookups":[{"Item":myID,"Version":-1,"ObjectType": 6,"ObjectFlags":64}]}},{"PropertyDef":42,"TypedValue":{"DataType":5,"HasValue": true,"Value":echeance}},{"PropertyDef":41,"TypedValue":{"DataType":13,"HasValue": true,"Value":descr}}]}); 
+                    console.log(data);
+                    var xmlhttp = new XMLHttpRequest();
+                    xmlhttp.withCredentials = false;
+                    xmlhttp.addEventListener("readystatechange", function() {
+                        if(this.readyState === 4) {
+                            console.log("Création de l'objet en cours...");
+                            console.log(this.responseText);
+                            var jsonTache = JSON.parse(this.responseText);
+        
+                            document.getElementById("tache-form").reset(); 
+                            document.getElementById("tache-created").innerHTML = "";
+                            document.getElementById("tache-created").innerHTML += `<br><p align=center>La tâche: `+jsonTache.DisplayID+` au titre: `+jsonTache.Title+` a été créée.<button class="btn btn-info" onclick="window.open('welcome.html?click=taches&token=`+getTokenURL()+`');">Voir tâche</button></p></br> </p></br>`;
+                        }
+                    });  
+                    xmlhttp.open("POST", "http://localhost/REST/objects/10?checkIn=true", true);
+                    xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
+                    xmlhttp.setRequestHeader("Content-Type", "application/json");
+                    xmlhttp.send(data);
+
+
+                }
+            });  
+            XHR.open("GET", "http://localhost/REST/session/userid", true);
+            XHR.setRequestHeader("X-Authentication", getTokenURL());
+            XHR.setRequestHeader("Content-Type", "application/json");
+            XHR.send();
     }else {
         alert("Entrez les données correctement.");
     }

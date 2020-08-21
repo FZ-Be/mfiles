@@ -21,6 +21,11 @@ function getClickSideBar(){
     });
     if(vars["click"] == "clients"){
         document.getElementById("clients").click();
+    }else if(vars["click"] == "vues"){
+        document.getElementById("vues").click();
+    }
+    else if(vars["click"] == "taches"){
+        document.getElementById("taches").click();
     }
     else if(vars["click"] == "factureclient"){
         document.getElementById("factures").click();
@@ -49,6 +54,7 @@ function getUser(){
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             //console.log(this.responseText);
             var jsonUser = JSON.parse(this.responseText);
+            console.log(jsonUser);
             getVault(token);
             formatUser(jsonUser);
         }
@@ -85,41 +91,60 @@ function getVault(tokenV){
 }
 function formatUser(jU){
     //fonction prend objet json et met ses valeurs dans le code html
-    document.getElementById("fname").innerHTML = "<h3>"+jU.FullName+"</h3>";
-    document.getElementById("accname").innerHTML = "<h5>"+jU.AccountName+" ID: "+jU.UserID+"</h5>";
+    document.getElementById("fname").innerHTML= "<h3>"+jU.AccountName+" (ID: "+jU.UserID+")</h3>";
+    //document.getElementById("fname").innerHTML = "<h3>"+jU.FullName+"</h3>";
+    //document.getElementById("accname").innerHTML = "<h5>"+jU.AccountName+" ID: "+jU.UserID+"</h5>";
 }
 ///////////////////////////////////////////////////////////////////////////////////////
 
 //onclick boutonn tâches affectées à moi sur le menu à gauche
-function getTaskToMe(){
+function getTasks(){
     var token = getTokenURL();
     //premiere requete pour recevoir l'ID
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.withCredentials = false;
     xmlhttp.addEventListener("readystatechange", function() {
     if(this.readyState === 4) {
+        formatTaskList();
         var jsonU = JSON.parse(this.responseText);
         var ID = jsonU.UserID;
 
         //requete asynch dans une requete asynch pour faire passage de l'ID à requete des tâches
-        var XHR = new XMLHttpRequest();
-        XHR.withCredentials = false;
+        var XHR1 = new XMLHttpRequest();
+        XHR1.withCredentials = false;
 
-        XHR.addEventListener("readystatechange", function() {
+        XHR1.addEventListener("readystatechange", function() {
             if(this.readyState === 4) {
                 var json = JSON.parse(this.responseText);
                 var arrayTasks = new Array();
                 arrayTasks = json.Items;
                 arrayTasks.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
-                formatTaskList(arrayTasks, arrayTasks.length);
+                formatTaskListToMe(arrayTasks, arrayTasks.length);
             }
             });
-            XHR.open("GET", "http://localhost/REST/objects/10?p44"+ID);
-            XHR.setRequestHeader("X-Authentication", token);
-            XHR.setRequestHeader("Content-Type", "application/json");
-            XHR.send();
-        }
+            XHR1.open("GET", "http://localhost/REST/objects/10?p44="+ID);
+            XHR1.setRequestHeader("X-Authentication", token);
+            XHR1.setRequestHeader("Content-Type", "application/json");
+            XHR1.send();
 
+        //requete asynch dans une requete asynch pour faire passage de l'ID à requete des tâches
+        var XHR2 = new XMLHttpRequest();
+        XHR2.withCredentials = false;
+
+        XHR2.addEventListener("readystatechange", function() {
+            if(this.readyState === 4) {
+                var json = JSON.parse(this.responseText);
+                var arrayTasks = new Array();
+                arrayTasks = json.Items;
+                arrayTasks.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
+                formatTaskListFromMe(arrayTasks, arrayTasks.length);
+            }
+            });
+            XHR2.open("GET", "http://localhost/REST/objects/10?p43="+ID);
+            XHR2.setRequestHeader("X-Authentication", token);
+            XHR2.setRequestHeader("Content-Type", "application/json");
+            XHR2.send();
+        }
     });
     xmlhttp.open("GET", "http://localhost/REST/session");
     xmlhttp.setRequestHeader("X-Authentication", token);
@@ -127,7 +152,8 @@ function getTaskToMe(){
     xmlhttp.send();
 }
 
-function formatTaskList(array, length){
+function formatTaskList(){
+    document.getElementById("vues").className="btn";
     document.getElementById("taches").className="btn active";
     document.getElementById("clients").className="btn";
     document.getElementById("workflow").className="btn";
@@ -138,18 +164,30 @@ function formatTaskList(array, length){
 
     document.getElementById("object").innerHTML="";
     document.getElementById("content").innerHTML = "";
-    document.getElementById("content").innerHTML +="<h2 align='center'>Liste des tâches affectées à vous </h2><ul id='liste-taches'></ul>";
+    document.getElementById("content").innerHTML = "<div id='aff-a-moi'></div><div id='aff-par-moi'></div>";
+}
+function formatTaskListToMe(array, length){
+    document.getElementById("aff-a-moi").innerHTML +="<h2 align='center'>Liste des tâches affectées à vous </h2><ul id='liste-taches-a-moi'></ul>";
+        if(length==0){        
+            document.getElementById("liste-taches-a-moi").innerHTML +='<dt><dd style="color:black;">Aucune tâche à afficher.</dd></dt>';
+        }
+        else{
+            for (var i = 0; i < length; i++) {
+                document.getElementById("liste-taches-a-moi").innerHTML +=`<a role="button" class="btn" style="text-align: left;" onclick="formatTask(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
+            } 
+        }
+}
+function formatTaskListFromMe(array, length){
+    document.getElementById("aff-par-moi").innerHTML +="<h2 align='center'>Liste des tâches créées par vous</h2><ul id='liste-taches-par-moi'></ul>";
     if(length==0){        
-        document.getElementById("liste-taches").innerHTML ='<dt><dd style="color:black;">Aucune tâche à afficher.</dd></dt>';
+        document.getElementById("liste-taches-par-moi").innerHTML +='<dt><dd style="color:black;">Aucune tâche à afficher.</dd></dt>';
     }
     else{
         for (var i = 0; i < length; i++) {
-            document.getElementById("liste-taches").innerHTML +=`<a role="button" class="btn" style="text-align: left;" onclick="formatTask(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
+            document.getElementById("liste-taches-par-moi").innerHTML +=`<a role="button" class="btn" style="text-align: left;" onclick="formatTask(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
         } 
     }
-
 }
-
 function formatTask(ID){
     document.getElementById("object").innerHTML="";
     document.getElementById("object").innerHTML +="<h3 align='center'>Propriétés</h3>";
@@ -218,6 +256,7 @@ function getClients(){
     xmlhttp.send();
 }
 function formatClientList(array, length){
+    document.getElementById("vues").className="btn";
     document.getElementById("clients").className="btn active";
     document.getElementById("taches").className="btn";
     document.getElementById("workflow").className="btn";
@@ -291,6 +330,7 @@ function formatClient(cliID){
 //bouton factures onclick
 //////////////////////////////////////
 function getFactures(){
+    document.getElementById("vues").className="btn";
     document.getElementById("taches").className="btn";
     document.getElementById("clients").className="btn";
     document.getElementById("workflow").className="btn";
@@ -448,7 +488,6 @@ function ouvrirFile(objT, objID, fileID){
 
             //open mfiles url
             window.open("m-files://open/"+jsonVault.GUID+"/"+objT+"-"+objID+"/"+fileID, '_blank');
-
         }
         else {
             console.log("Failed to get vault info.");
@@ -498,6 +537,7 @@ function ouvrirFile(objT, objID, fileID){
 ////////////////////////////////////
 
 function getRapportsF(){
+    document.getElementById("vues").className="btn";
     document.getElementById("taches").className="btn";
     document.getElementById("clients").className="btn";
     document.getElementById("workflow").className="btn";
@@ -599,6 +639,7 @@ function formatRapport(ID){
 //Workflow
 ////////////////////////////////////////////////////////////////
 function getWorkflow(){
+    document.getElementById("vues").className="btn";
     document.getElementById("taches").className="btn";
     document.getElementById("clients").className="btn";
     document.getElementById("workflow").className="btn active";
@@ -627,7 +668,7 @@ function getWorkflow(){
             }
              else{
                 for (var i = 0; i < length; i++) {
-                    document.getElementById("liste-wf").innerHTML +=`<a role="button" class="btn" style="text-align: left;" onclick="formatWF(`+jsonArr[i].ID+`)"><dt><dd style="color:black;">`+jsonArr[i].Name+`</dd><dd> ID: `+jsonArr[i].ID+`</dd></dt></a><br/>`;                
+                    document.getElementById("liste-wf").innerHTML +=`<a role="button" class="btn" style="text-align: left;width=100%;" onclick="formatWF(`+jsonArr[i].ID+`)"><dt><dd style="color:black;">`+jsonArr[i].Name+`</dd><dd> ID: `+jsonArr[i].ID+`</dd></dt></a><br/>`;                
                 } 
             }
         }
@@ -647,38 +688,132 @@ function formatWF(wfID){
 
     var token = getTokenURL();
     var XHR = new XMLHttpRequest();
-            XHR.withCredentials = false;
+    XHR.withCredentials = false;
 
-            XHR.addEventListener("readystatechange", function() {
-                if(this.readyState === 4) {
-                    //console.log(this.responseText);
-                    var jsonArr = JSON.parse(this.responseText);
-                    var length = jsonArr.length;   
-                    jsonArr.sort((a, b) => parseFloat(b.ID) - parseFloat(a.ID));
-         
-                    if(length==0){        
-                        document.getElementById("liste-next-states").innerHTML ='<dt><dd style="color:black;font-size:1.4em;">Aucun état workflow à afficher.</dd></dt>';
-                    }
-                     else{
-                        for (var i = 0; i < length; i++) {
-                            if(jsonArr[i].Selectable == true){
-                                document.getElementById("liste-next-states").innerHTML +=`<p  style="text-align: left;"><dd style="color:black;font-size:1em;">Nom: `+jsonArr[i].Name+`</dd><dd> State ID: `+jsonArr[i].ID+`</dd><dd> Selectable: `+jsonArr[i].Selectable+`</dd></p>`;                
-                                }else{
-                                    document.getElementById("liste-next-states").innerHTML +=`<p  style="text-align: left;"><dt><dd style="color:black;font-size:1em;">Nom: `+jsonArr[i].Name+`</dd><dd> State ID: `+jsonArr[i].ID+`</dd></p>`;                
-            
-                                }  
-                        } 
-                    }
-                }
-            });
-            XHR.open("GET", "http://localhost/REST/structure/workflows/"+wfID+"/states?currentstate=108");
-            XHR.setRequestHeader("X-Authentication", token);
-            XHR.setRequestHeader("Content-Type", "application/json");
-            XHR.send();
+    XHR.addEventListener("readystatechange", function() {
+        if(this.readyState === 4) {
+            //console.log(this.responseText);
+            var jsonArr = JSON.parse(this.responseText);
+            var length = jsonArr.length;   
+            jsonArr.sort((a, b) => parseFloat(b.ID) - parseFloat(a.ID));
+    
+            if(length==0){        
+                document.getElementById("liste-next-states").innerHTML ='<dt><dd style="color:black;">Aucun état workflow à afficher.</dd></dt>';
+            }
+                else{
+                for (var i = 0; i < length; i++) {
+                    if(jsonArr[i].Selectable == true){
+                        document.getElementById("liste-next-states").innerHTML +=`<p  style="text-align: left;"><dd style="color:black;">Nom: `+jsonArr[i].Name+`</dd><dd> State ID: `+jsonArr[i].ID+`</dd><dd> Selectable: `+jsonArr[i].Selectable+`</dd></p>`;                
+                        }else{
+                            document.getElementById("liste-next-states").innerHTML +=`<p  style="text-align: left;"><dt><dd style="color:black;">Nom: `+jsonArr[i].Name+`</dd><dd> State ID: `+jsonArr[i].ID+`</dd></p>`;                
+    
+                        }  
+                } 
+            }
+        }
+    });
+    XHR.open("GET", "http://localhost/REST/structure/workflows/"+wfID+"/states?currentstate=108");
+    XHR.setRequestHeader("X-Authentication", token);
+    XHR.setRequestHeader("Content-Type", "application/json");
+    XHR.send();
 
 }
 
 function pageCreate(){
     window.location.replace('create.html?token='+getTokenURL());
+
+}
+
+function getViews(){
+
+    document.getElementById("vues").className="btn active";
+    document.getElementById("taches").className="btn";
+    document.getElementById("clients").className="btn";
+    document.getElementById("workflow").className="btn";
+    document.getElementById("factures").className="btn";
+    document.getElementById("rapports").className="btn";
+    document.getElementById("create").className="btn";
+
+
+    document.getElementById("object").innerHTML="";
+    document.getElementById("content").innerHTML = "";
+
+    var XHR = new XMLHttpRequest();
+    XHR.withCredentials = false;
+    XHR.addEventListener("readystatechange", function() {
+        if(this.readyState === 4) {
+            //console.log(this.responseText);
+            var jsonViewsList = JSON.parse(this.responseText);
+            var arrViews = jsonViewsList.Items;
+            var N = arrViews.length;
+            arrViews.sort((a, b) => parseFloat(a.View.ID) - parseFloat(b.View.ID));
+
+            document.getElementById("content").innerHTML +="<h4 align='center' style='color:rgb(25,80,134);'>Liste des Vues (Path : /) </h4><div class='list-group' id='liste-vues'></div>";
+            for(var i = 0; i<N ; i++){
+                document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn'  style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;' onclick='getSubViews("+arrViews[i].View.ID+");'><dt><dd style='color:black;'>"+arrViews[i].View.Name+"</dd><dd> ID: "+arrViews[i].View.ID+"</dd></dt></a>";
+            }
+        }
+    });
+    XHR.open("GET", "http://localhost/REST/views/items");
+    XHR.setRequestHeader("X-Authentication", getTokenURL());
+    XHR.setRequestHeader("Content-Type", "application/json");
+    XHR.send();
+
+}
+
+function getSubViews(vID, name){
+    
+
+    var XHR = new XMLHttpRequest();
+    XHR.withCredentials = false;
+    XHR.addEventListener("readystatechange", function() {
+        if(this.readyState === 4) {
+            //console.log(this.responseText);
+            var jsonViewsList = JSON.parse(this.responseText);
+            var arrViews = jsonViewsList.Items;
+            document.getElementById("object").innerHTML="";
+            document.getElementById("content").innerHTML = "";
+            document.getElementById("content").innerHTML +="<h4 align='center' style='color:rgb(25,80,134);'>Liste des Vues "+jsonViewsList.viewPathInfos[0].ViewName+" (Path: /"+vID+")</h4>";
+            document.getElementById("content").innerHTML += "<button class='btn btn-info' style='align:center;font-size:1.2em;' onclick='getViews();'>Retour à Path: / </button>";
+            document.getElementById("content").innerHTML +="<ul id='liste-vues'></ul>";
+            var N = arrViews.length;  
+            for(var i = 0; i<N ; i++){
+                if(arrViews[i].FolderContentItemType == 1){
+                    document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn'  style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;' onclick='getViewsByClass("+vID+","+arrViews[i].View.ID+");'><dt><dd style='color:black;'>"+arrViews[i].View.Name+"</dd><dd> ID: "+arrViews[i].View.ID+"</dd></dt></a>";
+                } if(arrViews[i].FolderContentItemType == 4){
+                    document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn'  style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].ObjectVersion.EscapedTitleWithID+"</dd><dd> ID: "+arrViews[i].ObjectVersion.DisplayID+"</dd></dt></a>";
+                }
+            }
+        }
+    });
+    XHR.open("GET", "http://localhost/REST/views/v"+vID+"/items");
+    XHR.setRequestHeader("X-Authentication", getTokenURL());
+    XHR.setRequestHeader("Content-Type", "application/json");
+    XHR.send();
+}
+
+function getViewsByClass(vID, subvID, name){
+    var XHR = new XMLHttpRequest();
+    XHR.withCredentials = false;
+    XHR.addEventListener("readystatechange", function() {
+        if(this.readyState === 4) {
+            //console.log(this.responseText);
+            var jsonViewsList = JSON.parse(this.responseText);
+            document.getElementById("object").innerHTML="";
+            document.getElementById("content").innerHTML = "";
+            document.getElementById("content").innerHTML +="<h4 align='center' style='color:rgb(25,80,134);'>Liste des Vues "+jsonViewsList.viewPathInfos[0].ViewName+" > "+jsonViewsList.viewPathInfos[1].ViewName+" (Path: /"+vID+"/"+subvID+")</h4>";
+            document.getElementById("content").innerHTML += "<button class='btn btn-info' align ='middle' onclick='getSubViews("+vID+");'>Retour à Path: /"+vID+" </button>";
+            document.getElementById("content").innerHTML +="<ul id='liste-vues'></ul>";
+            var arrViews = jsonViewsList.Items;
+            var N = arrViews.length;
+            for(var i = 0; i<N ; i++){
+                document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn'  style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].PropertyFolder.Lookup.DisplayValue+"</dd><dd> ID: "+arrViews[i].PropertyFolder.Lookup.Item+"</dd></dt></a>";
+            }
+        }
+    });
+    XHR.open("GET", "http://localhost/REST/views/v"+vID+"/v"+subvID+"/items");
+    XHR.setRequestHeader("X-Authentication", getTokenURL());
+    XHR.setRequestHeader("Content-Type", "application/json");
+    XHR.send();
 
 }
