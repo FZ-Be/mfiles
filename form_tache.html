@@ -1,0 +1,92 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <!--<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">-->
+    <!--<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  -->
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>  
+    <script src="js/create.js" type="text/javascript" language="javascript"></script>
+
+    <script>
+        function getTokenURL(){
+            //get token from current url
+            var vars = {};
+            var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&#]*)/ig, function(m,key,value) {
+                vars[key] = "";
+                vars[key] = value;
+            });
+            if(vars["token"] != ""){
+                return vars["token"];
+            }
+            else return "";
+        }
+        //pour afficher liste des pays depuis Liste des Valeurs de M-Files
+        function listeUsers(){
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.withCredentials = false;
+            xmlhttp.addEventListener("readystatechange", function() {
+                if(this.readyState === 4) {
+                    var jsonUsers = JSON.parse(this.responseText);
+                    var arrUsers= jsonUsers.Items;
+                    var N = arrUsers.length;
+                    for (var i = 0; i<N; i++){                    
+                        var XHR = new XMLHttpRequest();
+                        XHR.withCredentials = false;
+                        XHR.addEventListener("readystatechange", function() {
+                            if(this.readyState === 4) {
+                                var jsonU = JSON.parse(this.responseText);
+                                console.log(jsonU);
+                                document.getElementById("tache-affecte-a").innerHTML += "<option value="+jsonU.Properties[9].Value.Lookup.Item+">"+jsonU.Title+" (ID "+jsonU.Properties[9].Value.Lookup.Item+")</option>"
+                                
+                            }
+                        });  
+                        XHR.open("GET", "http://localhost/REST/objects/156/"+arrUsers[i].DisplayID+"?include=properties", true);
+                        XHR.setRequestHeader("X-Authentication", getTokenURL());
+                        XHR.setRequestHeader("Content-Type", "application/json");
+                        XHR.send();
+                    }
+                    
+                }
+            });  
+            xmlhttp.open("GET", "http://localhost/REST/objects/156", true);
+            xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
+            xmlhttp.setRequestHeader("Content-Type", "application/json");
+            xmlhttp.send();
+        }
+    </script>
+</head>
+
+<body onload="listeUsers()" style="overflow-x:hidden;font-size: small;">
+        <form id="tache-form">
+            <h4  align="center"><b>Affecter une tâche</b></h4>
+            
+            <div class="form-group">
+                <label for="tache-classe"><b>Classe</b></label>
+                <input type="text" class="form-control" name="tache-classe" id="tache-classe"  placeholder="Tâche" disabled>
+            </div>
+
+            <div class="form-group">
+                <label for="tache-nom"><b>Nom du tache</b></label>
+                <input type="text" class="form-control" name="tache-nom" id="tache-nom" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tache-descr"><b>Description de la tâche</b></label>
+                <input class="form-control" name="tache-descr" id="tache-descr" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tache-affecte-a"><b>Affectée à</b></label>
+                <select type="number" class="form-control" name="tache-affecte-a" id="tache-affecte-a" required>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tache-website"><b>Date d'échéance</b></label>
+                <input type="date" class="form-control" name="tache-echeance" id="tache-echeance" required>
+            </div>
+
+            <div class="form-group text-center">
+                <input type="button" value="Créer tâche" class="btn" onclick="creerTache();">
+            </div>
+        </form>
+    <div id="tache-created"></div>
+</body>
