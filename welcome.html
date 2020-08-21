@@ -5,9 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="shortcut icon" href="img/favicon.ico" />
         <title>M-Files Application</title>
-        <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-        <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  
-        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>    
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>  
+        <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>    
         <style>
             html {
                 position: relative;
@@ -27,7 +27,7 @@
             .profile-sidebar {
                 padding: 20px 0 0px 0;
                 background: rgb(255, 255, 255);
-                width:120%;
+                width:100%;
                 height: 100%;
             }
             .profile-usertitle {
@@ -173,9 +173,14 @@
                             <div class="profile-usermenu">
                                 <ul class="nav">
                                     <li>
-                                        <a role="button" class="btn" id="taches" onclick="getTaskToMe();">
+                                        <a role="button" class="btn" id="vues" onclick="getViews();">
+                                        <i class="glyphicon glyphicon-eye-open"></i> 
+                                        Vues</a>
+                                    </li>
+                                    <li>
+                                        <a role="button" class="btn" id="taches" onclick="getTasks();">
                                         <i class="glyphicon glyphicon-copy"></i> 
-                                        Tâches affectées à moi </a>
+                                        Vos Tâches</a>
                                     </li>
                                     <li>
                                         <a role="button" class="btn" id="clients" onclick="getClients();">
