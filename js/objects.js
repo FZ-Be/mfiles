@@ -12,6 +12,7 @@ function getTokenURL(){
     else return "";
 }
 
+//permet d'utiliser des liens qui affiche un élément du menu de la page welcome.html
 function getClickSideBar(){
     //get id of button from current url
     var vars = {};
@@ -54,9 +55,8 @@ function getUser(){
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             //console.log(this.responseText);
             var jsonUser = JSON.parse(this.responseText);
-            console.log(jsonUser);
             getVault(token);
-            formatUser(jsonUser);
+            afficherUser(jsonUser);
         }
         else {console.log("Failed to get user info.")
         ;}
@@ -66,7 +66,8 @@ function getUser(){
     xmlhttp.setRequestHeader("X-Authentication", token); 
     xmlhttp.send();
 }
-//données du coffre auquel utilisateur est connecté
+
+//affiche données du coffre auquel l'utilisateur est connecté
 function getVault(tokenV){
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.withCredentials = false;                  
@@ -89,15 +90,59 @@ function getVault(tokenV){
     xmlhttp.setRequestHeader("X-Authentication", tokenV); 
     xmlhttp.send();
 }
-function formatUser(jU){
-    //fonction prend objet json et met ses valeurs dans le code html
-    document.getElementById("fname").innerHTML= "<h3>"+jU.AccountName+" (ID: "+jU.UserID+")</h3>";
-    //document.getElementById("fname").innerHTML = "<h3>"+jU.FullName+"</h3>";
-    //document.getElementById("accname").innerHTML = "<h5>"+jU.AccountName+" ID: "+jU.UserID+"</h5>";
-}
-///////////////////////////////////////////////////////////////////////////////////////
 
-//onclick boutonn tâches affectées à moi sur le menu à gauche
+//affiche les informations de l'utilisateur connecté dans le sidebar
+function afficherUser(jU){
+    //fonction prend objet json et met ses valeurs dans le code html
+    //document.getElementById("fname").innerHTML= "<h3>"+jU.AccountName+" (ID: "+jU.UserID+")</h3>";
+    document.getElementById("fname").innerHTML = "<h3>"+jU.FullName+"</h3>";
+    document.getElementById("accname").innerHTML = "<h5>"+jU.AccountName+" ID: "+jU.UserID+"</h5>";
+}
+
+//change la couleur des éléments cliqués depuis la liste d'affichage
+function objectColor(param_id){
+    var listes = document.getElementsByClassName("liste");
+    var N = listes.length;
+    for(var i=0; i<N;i++){
+        if(listes[i].id==param_id){
+            listes[i].style.backgroundColor="#f6f9fb";
+        }
+        else listes[i].style.backgroundColor="white";
+    }
+}
+
+//lien vers page de création des objets
+function pageCreate(){
+    window.location.replace('create.html?token='+getTokenURL());
+
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function afficheProperties(respArray, N){
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.withCredentials = false;
+
+    xmlhttp.addEventListener("readystatechange", function() {
+        if(this.readyState === 4) {
+            //console.log(this.responseText);
+            var propArray = JSON.parse(this.responseText);
+            var M = propArray.length;
+            for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
+                for(var j = 0; j<M; j++){//boucle dans /structure/propriete
+                    if(respArray[i].PropertyDef == propArray[j].ID){
+                        document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+respArray[i].TypedValue.DisplayValue+"</p>";
+                    }
+                }
+            }
+        }
+    });
+    xmlhttp.open("GET", "http://localhost/REST/structure/properties");
+    xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
+    xmlhttp.setRequestHeader("Content-Type", "application/json");
+    xmlhttp.send();
+}
+
+//accéde aux tâches dans le coffre 
 function getTasks(){
     var token = getTokenURL();
     //premiere requete pour recevoir l'ID
@@ -105,7 +150,7 @@ function getTasks(){
     xmlhttp.withCredentials = false;
     xmlhttp.addEventListener("readystatechange", function() {
     if(this.readyState === 4) {
-        formatTaskList();
+        afficherTaskList();
         var jsonU = JSON.parse(this.responseText);
         var ID = jsonU.UserID;
 
@@ -119,7 +164,7 @@ function getTasks(){
                 var arrayTasks = new Array();
                 arrayTasks = json.Items;
                 arrayTasks.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
-                formatTaskListToMe(arrayTasks, arrayTasks.length);
+                afficherTaskListToMe(arrayTasks, arrayTasks.length);
             }
             });
             XHR1.open("GET", "http://localhost/REST/objects/10?p44="+ID);
@@ -137,7 +182,7 @@ function getTasks(){
                 var arrayTasks = new Array();
                 arrayTasks = json.Items;
                 arrayTasks.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
-                formatTaskListFromMe(arrayTasks, arrayTasks.length);
+                afficherTaskListFromMe(arrayTasks, arrayTasks.length);
             }
             });
             XHR2.open("GET", "http://localhost/REST/objects/10?p43="+ID);
@@ -152,7 +197,8 @@ function getTasks(){
     xmlhttp.send();
 }
 
-function formatTaskList(){
+//affiche la page des tâches
+function afficherTaskList(){
     document.getElementById("vues").className="btn";
     document.getElementById("taches").className="btn active";
     document.getElementById("clients").className="btn";
@@ -160,37 +206,41 @@ function formatTaskList(){
     document.getElementById("factures").className="btn";
     document.getElementById("rapports").className="btn";
     document.getElementById("create").className="btn";
-
-
     document.getElementById("object").innerHTML="";
     document.getElementById("content").innerHTML = "";
     document.getElementById("content").innerHTML = "<div id='aff-a-moi'></div><div id='aff-par-moi'></div>";
 }
-function formatTaskListToMe(array, length){
+
+//affiche liste des tâches affectées à l'utilisateur connecté
+function afficherTaskListToMe(array, length){
     document.getElementById("aff-a-moi").innerHTML +="<h2 align='center'>Liste des tâches affectées à vous </h2><ul id='liste-taches-a-moi'></ul>";
         if(length==0){        
             document.getElementById("liste-taches-a-moi").innerHTML +='<dt><dd style="color:black;">Aucune tâche à afficher.</dd></dt>';
         }
         else{
             for (var i = 0; i < length; i++) {
-                document.getElementById("liste-taches-a-moi").innerHTML +=`<a role="button" class="btn" style="text-align: left;" onclick="formatTask(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
+                document.getElementById("liste-taches-a-moi").innerHTML +=`<a role="button" class="btn liste" id="tto`+i+`" style="text-align: left;" onclick="afficherTaskProperties(`+array[i].DisplayID+`);objectColor('tto`+i+`');"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
             } 
         }
 }
-function formatTaskListFromMe(array, length){
+
+//affiche liste des tâches créées par l'utilisateur connecté
+function afficherTaskListFromMe(array, length){
     document.getElementById("aff-par-moi").innerHTML +="<h2 align='center'>Liste des tâches créées par vous</h2><ul id='liste-taches-par-moi'></ul>";
     if(length==0){        
         document.getElementById("liste-taches-par-moi").innerHTML +='<dt><dd style="color:black;">Aucune tâche à afficher.</dd></dt>';
     }
     else{
         for (var i = 0; i < length; i++) {
-            document.getElementById("liste-taches-par-moi").innerHTML +=`<a role="button" class="btn" style="text-align: left;" onclick="formatTask(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
+            document.getElementById("liste-taches-par-moi").innerHTML +=`<a role="button" class="btn liste" id="tfrom`+i+`" style="text-align: left;" onclick="afficherTaskProperties(`+array[i].DisplayID+`);objectColor('tfrom`+i+`');"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
         } 
     }
 }
-function formatTask(ID){
+
+//affiche les propriétés de la tâche affichée
+function afficherTaskProperties(ID){
     document.getElementById("object").innerHTML="";
-    document.getElementById("object").innerHTML +="<h3 align='center'>Propriétés</h3>";
+    document.getElementById("object").innerHTML +="<h3 align='center' style='color:rgb(25,80,134);'>Propriétés</h3>";
 
     var XHR = new XMLHttpRequest();
     XHR.withCredentials = false;
@@ -201,29 +251,7 @@ function formatTask(ID){
             var jsonTask = JSON.parse(this.responseText);
             var respArray = jsonTask.Properties;
             var N = respArray.length;
-
-            var xmlhttp = new XMLHttpRequest();
-            xmlhttp.withCredentials = false;
-
-            xmlhttp.addEventListener("readystatechange", function() {
-                if(this.readyState === 4) {
-                    //console.log(this.responseText);
-                    var propArray = JSON.parse(this.responseText);
-                    var M = propArray.length;
-                    for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
-                        for(var j = 0; j<M; j++){//boucle dans /structure/propriete
-                            if(respArray[i].PropertyDef == propArray[j].ID){
-                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+respArray[i].TypedValue.DisplayValue+"</p>";
-                            }
-                        }
-                    }
-                }
-            });
-            xmlhttp.open("GET", "http://localhost/REST/structure/properties");
-            xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
-            xmlhttp.setRequestHeader("Content-Type", "application/json");
-            xmlhttp.send();
-
+            afficheProperties(respArray, N);
         }
     });
     XHR.open("GET", "http://localhost/REST/objects/10/"+ID+"?include=properties");
@@ -246,7 +274,7 @@ function getClients(){
         arrayClients.sort((a, b) => parseFloat(b.DisplayID) - parseFloat(a.DisplayID));
         //console.log("number of items "+arrayClients.length);
         //console.log(arrayClients[0].Title+" "+arrayClients[0].ObjVer.ID);
-        formatClientList(arrayClients, arrayClients.length);
+        afficherClientList(arrayClients, arrayClients.length);
     }
     });
 
@@ -255,7 +283,8 @@ function getClients(){
     xmlhttp.setRequestHeader("Content-Type", "application/json");
     xmlhttp.send();
 }
-function formatClientList(array, length){
+
+function afficherClientList(array, length){
     document.getElementById("vues").className="btn";
     document.getElementById("clients").className="btn active";
     document.getElementById("taches").className="btn";
@@ -263,8 +292,6 @@ function formatClientList(array, length){
     document.getElementById("factures").className="btn";
     document.getElementById("rapports").className="btn";
     document.getElementById("create").className="btn";
-
-
 
     document.getElementById("content").innerHTML = "";
     document.getElementById("object").innerHTML="";
@@ -274,15 +301,14 @@ function formatClientList(array, length){
 
     }else{
         for (var i = 0; i < length; i++) {
-            var string = JSON.stringify(array[i]);
-            document.getElementById("liste-clients").innerHTML +=`<a role="button" class="btn"  onclick="formatClient(`+array[i].DisplayID+`);"  style="text-align: left;"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifié le: `+array[i].LastModified+` | Créé le: `+array[i].Created+`</dd></dt></a>`;                
+            document.getElementById("liste-clients").innerHTML +=`<a role="button" class="btn liste" id="cli`+i+`" onclick="afficherClientProperties(`+array[i].DisplayID+`);objectColor('cli`+i+`');"  style="text-align: left;"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifié le: `+array[i].LastModified+` | Créé le: `+array[i].Created+`</dd></dt></a>`;                
         } 
     }
 }
 
-function formatClient(cliID){
+function afficherClientProperties(cliID){
     document.getElementById("object").innerHTML="";
-    document.getElementById("object").innerHTML +="<h3 align='center'>Propriétés</h3>";
+    document.getElementById("object").innerHTML +="<h3 align='center' style='color:rgb(25,80,134);'>Propriétés</h3>";
 
     var XHR = new XMLHttpRequest();
     XHR.withCredentials = false;
@@ -293,31 +319,7 @@ function formatClient(cliID){
             var jsonClient = JSON.parse(this.responseText);
             var respArray = jsonClient.Properties;
             var N = respArray.length;
-
-            var xmlhttp = new XMLHttpRequest();
-            xmlhttp.withCredentials = false;
-
-            xmlhttp.addEventListener("readystatechange", function() {
-                if(this.readyState === 4) {
-                    //console.log(this.responseText);
-                    var propArray = JSON.parse(this.responseText);
-                    var M = propArray.length;
-                    for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
-                        for(var j = 0; j<M; j++){//boucle dans /structure/propriete
-                            if(respArray[i].PropertyDef == propArray[j].ID){
-                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+respArray[i].TypedValue.DisplayValue+"</p>";
-                            }
-                        }
-                    }
-                }
-            });
-            xmlhttp.open("GET", "http://localhost/REST/structure/properties");
-            xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
-            xmlhttp.setRequestHeader("Content-Type", "application/json");
-            xmlhttp.send();
-
-
-
+            afficheProperties(respArray, N);
         }
     });
     XHR.open("GET", "http://localhost/REST/objects/136/"+cliID+"?include=properties");
@@ -368,7 +370,7 @@ function getFClients(){
             }
              else{
                 for (var i = 0; i < length; i++) {
-                    document.getElementById("liste-factures").innerHTML +=`<a role="button" class="btn"  style="text-align: left;" onclick="formatFact(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
+                    document.getElementById("liste-factures").innerHTML +=`<a role="button" class="btn liste" id="fcli`+i+`"  style="text-align: left;" onclick="afficherFactProperties(`+array[i].DisplayID+`);objectColor('fcli`+i+`');"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
                 } 
             }
 
@@ -403,7 +405,7 @@ function getFFourn(){
             }
              else{
                 for (var i = 0; i < length; i++) {
-                    document.getElementById("liste-factures").innerHTML +=`<a role="button" class="btn"  style="text-align: left;" onclick="formatFact(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
+                    document.getElementById("liste-factures").innerHTML +=`<a role="button" class="btn liste" id="ffourn`+i+`"  style="text-align: left;" onclick="afficherFactProperties(`+array[i].DisplayID+`);objectColor('ffourn`+i+`');"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
                 } 
             }
 
@@ -416,9 +418,9 @@ function getFFourn(){
 
 }
 
-function formatFact(ID){
+function afficherFactProperties(ID){
     document.getElementById("object").innerHTML="";
-    document.getElementById("object").innerHTML +="<h3 align='center'>Propriétés</h3>";
+    document.getElementById("object").innerHTML +="<h3 align='center' style='color:rgb(25,80,134);'>Propriétés</h3>";
     var token = getTokenURL();
     //premiere requete pour recevoir l'ID
     var xmlhttp = new XMLHttpRequest();
@@ -429,30 +431,7 @@ function formatFact(ID){
             var fileArray = jsonF.Files;
             var obPropArray = jsonF.Properties;
             var N = obPropArray.length;
-
-
-            var XHR = new XMLHttpRequest();
-            XHR.withCredentials = false;
-
-            XHR.addEventListener("readystatechange", function() {
-                if(this.readyState === 4) {
-                    //console.log(this.responseText);
-                    var propArray = JSON.parse(this.responseText);
-                    var M = propArray.length;
-                    for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
-                        for(var j = 0; j<M; j++){//boucle dans /structure/propriete
-                            if(obPropArray[i].PropertyDef == propArray[j].ID){
-                                document.getElementById("object").innerHTML +="<p><b>"+propArray[j].Name+":</b> "+obPropArray[i].TypedValue.DisplayValue+"</p>";
-                            }
-                        }
-                    }
-                }
-            });
-            XHR.open("GET", "http://localhost/REST/structure/properties");
-            XHR.setRequestHeader("X-Authentication", getTokenURL());
-            XHR.setRequestHeader("Content-Type", "application/json");
-            XHR.send();
-
+            afficheProperties(obPropArray, N);
             //boucle d'affichage des fichiers
             document.getElementById("object").innerHTML +="<h4><b><i>Fichiers </i></b></h4>";
             var F = fileArray.length;
@@ -497,40 +476,6 @@ function ouvrirFile(objT, objID, fileID){
     xmlhttp.setRequestHeader("Content-Type", "application/json");
     xmlhttp.setRequestHeader("X-Authentication", token); 
     xmlhttp.send();
-    //premiere requete pour recevoir l'ID
-   /* var xmlhttp = new XMLHttpRequest();
-    xmlhttp.withCredentials = false;
-    xmlhttp.addEventListener("readystatechange", function() {
-        if(this.readyState === 4) {
-                if(this.readyState == this.HEADERS_RECEIVED) {
-                    // Get the raw header string
-                    var header = this.getResponseHeader("Content-Disposition");    
-                    var arr = header.trim().split(/[\r\n]+/);
-                    // Create a map of header names to values
-                    var headerMap = {};
-                    arr.forEach(function (line) {
-                        var parts = line.split(': ');
-                        var header = parts.shift();
-                        var value = parts.join(': ');
-                        headerMap[header] = value;     
-                    });  
-                    console.log(this.headerMap["filename"]);                
-                }   
-            var element = document.createElement('a');
-            element.setAttribute('href','data:*;charset=utf-8,'+encodeURIComponent(this.responseText));
-            element.setAttribute('download', this.headerMap["filename"]);
-            element.style.display = 'none';
-            document.body.appendChild(element);    
-            element.click();
-            document.body.removeChild(element);
-
-        }
-    });  
-    xmlhttp.open("GET", "http://localhost/REST/objects/"+objT+"/"+obID+"/latest/"+fileID+"/content");
-    xmlhttp.setRequestHeader("X-Authentication", token);
-    xmlhttp.setRequestHeader("Content-Type", "application/json");
-    xmlhttp.send(); */
-
 }
 
 //affichage des rapports financiers
@@ -567,7 +512,7 @@ function getRapportsF(){
             }
              else{
                 for (var i = 0; i < length; i++) {
-                    document.getElementById("liste-rapports").innerHTML +=`<a role="button" class="btn"  style="text-align: left;" onclick="formatRapport(`+array[i].DisplayID+`)"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
+                    document.getElementById("liste-rapports").innerHTML +=`<a role="button" class="btn liste" id="rf`+i+`" style="text-align: left;" onclick="afficherRapportProperties(`+array[i].DisplayID+`);objectColor('rf`+i+`');"><dt><dd style="color:black;">`+array[i].Title+`</dd><dd> ID: `+array[i].DisplayID+` | Modifiée le: `+array[i].LastModified+` | Créée le: `+array[i].Created+`</dd></dt></a>`;                
                 } 
             }
 
@@ -580,9 +525,9 @@ function getRapportsF(){
 
 }
 
-function formatRapport(ID){
+function afficherRapportProperties(ID){
     document.getElementById("object").innerHTML="";
-    document.getElementById("object").innerHTML +="<h3 align='center'>Propriétés</h3>";
+    document.getElementById("object").innerHTML +="<h3 align='center' style='color:rgb(25,80,134);'>Propriétés</h3>";
 
 
     var token = getTokenURL();
@@ -595,30 +540,7 @@ function formatRapport(ID){
             var fileArray = jsonF.Files;
             var obPropArray = jsonF.Properties;
             var N = obPropArray.length;
-
-
-            var XHR = new XMLHttpRequest();
-            XHR.withCredentials = false;
-
-            XHR.addEventListener("readystatechange", function() {
-                if(this.readyState === 4) {
-                    //console.log(this.responseText);
-                    var propArray = JSON.parse(this.responseText);
-                    var M = propArray.length;
-                    for(var i = 0; i<N;i++){ //boucle dans la liste des proprietes de la facture
-                        for(var j = 0; j<M; j++){//boucle dans /structure/propriete
-                            if(obPropArray[i].PropertyDef == propArray[j].ID){
-                                document.getElementById("object").innerHTML +="<p style='text-align: left;'><b>"+propArray[j].Name+":</b> "+obPropArray[i].TypedValue.DisplayValue+"</p>";
-                            }
-                        }
-                    }
-                }
-            });
-            XHR.open("GET", "http://localhost/REST/structure/properties");
-            XHR.setRequestHeader("X-Authentication", getTokenURL());
-            XHR.setRequestHeader("Content-Type", "application/json");
-            XHR.send();
-
+            afficheProperties(obPropArray, N);
             //boucle d'affichage des fichiers
             document.getElementById("object").innerHTML +="<h4><b><i>Fichiers </i></b></h4>";
             var F = fileArray.length;
@@ -636,7 +558,7 @@ function formatRapport(ID){
 
 }
 
-//Workflow
+//affichege des Workflow
 ////////////////////////////////////////////////////////////////
 function getWorkflow(){
     document.getElementById("vues").className="btn";
@@ -668,7 +590,7 @@ function getWorkflow(){
             }
              else{
                 for (var i = 0; i < length; i++) {
-                    document.getElementById("liste-wf").innerHTML +=`<a role="button" class="btn" style="text-align: left;width=100%;" onclick="formatWF(`+jsonArr[i].ID+`)"><dt><dd style="color:black;">`+jsonArr[i].Name+`</dd><dd> ID: `+jsonArr[i].ID+`</dd></dt></a><br/>`;                
+                    document.getElementById("liste-wf").innerHTML +=`<a role="button" class="btn liste" id="wf`+i+`"  onclick="afficherWFProperties(`+jsonArr[i].ID+`);objectColor('wf`+i+`');" style="text-align: left;width=100%;"><dt><dd style="color:black;">`+jsonArr[i].Name+`</dd><dd> ID: `+jsonArr[i].ID+`</dd></dt></a><br/>`;                
                 } 
             }
         }
@@ -682,7 +604,8 @@ function getWorkflow(){
 
 }
 
-function formatWF(wfID){
+//affichage des etapes de workflow cliqué
+function afficherWFProperties(wfID){
     document.getElementById("wf-states").innerHTML ='';
     document.getElementById("wf-states").innerHTML += '<h4 align="center" style="color:#5b9bd1;">Prochains états possibles du workflow ID: '+wfID+'</h4><ul id="liste-next-states"></ul></div>';
 
@@ -719,11 +642,6 @@ function formatWF(wfID){
 
 }
 
-function pageCreate(){
-    window.location.replace('create.html?token='+getTokenURL());
-
-}
-
 function getViews(){
 
     document.getElementById("vues").className="btn active";
@@ -747,10 +665,11 @@ function getViews(){
             var arrViews = jsonViewsList.Items;
             var N = arrViews.length;
             arrViews.sort((a, b) => parseFloat(a.View.ID) - parseFloat(b.View.ID));
-
-            document.getElementById("content").innerHTML +="<h4 align='center' style='color:rgb(25,80,134);'>Liste des Vues (Path : /) </h4><div class='list-group' id='liste-vues'></div>";
+            document.getElementById("content").innerHTML +="<h4 align='center' style='color:rgb(25,80,134);'>Liste des Vues (Path : /) </h4><br/><br/><div class='list-group' id='liste-vues'></div>";
+            if (N == 0){document.getElementById("liste-vues").innerHTML +="<dt><dd>Aucun élément ici.</p></dd>";} 
             for(var i = 0; i<N ; i++){
-                document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn'  style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;' onclick='getSubViews("+arrViews[i].View.ID+");'><dt><dd style='color:black;'>"+arrViews[i].View.Name+"</dd><dd> ID: "+arrViews[i].View.ID+"</dd></dt></a>";
+                console.log(arrViews[i]);
+                document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn' id='vue"+i+"'  onclick='getSubViews("+arrViews[i].View.ID+");objectColor(`vue"+i+"`);' style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].View.Name+"</dd><dd> ID: "+arrViews[i].View.ID+"</dd></dt></a>";
             }
         }
     });
@@ -761,27 +680,27 @@ function getViews(){
 
 }
 
-function getSubViews(vID, name){
-    
-
+function getSubViews(vID){
     var XHR = new XMLHttpRequest();
     XHR.withCredentials = false;
     XHR.addEventListener("readystatechange", function() {
         if(this.readyState === 4) {
-            //console.log(this.responseText);
+            console.log(this.responseText);
             var jsonViewsList = JSON.parse(this.responseText);
             var arrViews = jsonViewsList.Items;
             document.getElementById("object").innerHTML="";
             document.getElementById("content").innerHTML = "";
             document.getElementById("content").innerHTML +="<h4 align='center' style='color:rgb(25,80,134);'>Liste des Vues "+jsonViewsList.viewPathInfos[0].ViewName+" (Path: /"+vID+")</h4>";
             document.getElementById("content").innerHTML += "<button class='btn btn-info' style='align:center;font-size:1.2em;' onclick='getViews();'>Retour à Path: / </button>";
-            document.getElementById("content").innerHTML +="<ul id='liste-vues'></ul>";
+            document.getElementById("content").innerHTML +="<br/><br/><ul id='liste-vues'></ul>";
             var N = arrViews.length;  
+            if (N == 0){document.getElementById("liste-vues").innerHTML +="<dt><dd>Aucun élément ici.</p></dd>";}
             for(var i = 0; i<N ; i++){
+                console.log(arrViews[i]);
                 if(arrViews[i].FolderContentItemType == 1){
-                    document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn'  style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;' onclick='getViewsByClass("+vID+","+arrViews[i].View.ID+");'><dt><dd style='color:black;'>"+arrViews[i].View.Name+"</dd><dd> ID: "+arrViews[i].View.ID+"</dd></dt></a>";
+                    document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn' id=subv1'"+i+"' onclick='getViewsByClass("+vID+","+arrViews[i].View.ID+");objectColor(`subv1"+i+"`);' style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].View.Name+"</dd><dd> ID: "+arrViews[i].View.ID+"</dd></dt></a>";
                 } if(arrViews[i].FolderContentItemType == 4){
-                    document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn'  style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].ObjectVersion.EscapedTitleWithID+"</dd><dd> ID: "+arrViews[i].ObjectVersion.DisplayID+"</dd></dt></a>";
+                    document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn' id='subv4"+i+"' onclick='objectColor(`subv4"+i+"`);' style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].ObjectVersion.EscapedTitleWithID+"</dd><dd> ID: "+arrViews[i].ObjectVersion.DisplayID+"</dd></dt></a>";
                 }
             }
         }
@@ -792,22 +711,35 @@ function getSubViews(vID, name){
     XHR.send();
 }
 
-function getViewsByClass(vID, subvID, name){
+function getViewsByClass(vID, subvID){
     var XHR = new XMLHttpRequest();
     XHR.withCredentials = false;
     XHR.addEventListener("readystatechange", function() {
         if(this.readyState === 4) {
-            //console.log(this.responseText);
+            console.log(this.responseText);
             var jsonViewsList = JSON.parse(this.responseText);
             document.getElementById("object").innerHTML="";
             document.getElementById("content").innerHTML = "";
             document.getElementById("content").innerHTML +="<h4 align='center' style='color:rgb(25,80,134);'>Liste des Vues "+jsonViewsList.viewPathInfos[0].ViewName+" > "+jsonViewsList.viewPathInfos[1].ViewName+" (Path: /"+vID+"/"+subvID+")</h4>";
             document.getElementById("content").innerHTML += "<button class='btn btn-info' align ='middle' onclick='getSubViews("+vID+");'>Retour à Path: /"+vID+" </button>";
-            document.getElementById("content").innerHTML +="<ul id='liste-vues'></ul>";
+            document.getElementById("content").innerHTML +="<br/><br/><ul id='liste-vues'></ul>";
             var arrViews = jsonViewsList.Items;
             var N = arrViews.length;
+            if (N == 0){document.getElementById("liste-vues").innerHTML +="<dt><dd>Aucun élément ici.</p></dd>";}
             for(var i = 0; i<N ; i++){
-                document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn'  style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].PropertyFolder.Lookup.DisplayValue+"</dd><dd> ID: "+arrViews[i].PropertyFolder.Lookup.Item+"</dd></dt></a>";
+                if(arrViews[i].FolderContentItemType == 1){
+                    document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn' id='vuecl1"+i+"' onclick='objectColor(`vuecl1"+i+"`);' style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;' onclick='getViewsByClass("+vID+","+arrViews[i].View.ID+");'><dt><dd style='color:black;'>"+arrViews[i].View.Name+"</dd><dd> ID: "+arrViews[i].View.ID+"</dd></dt></a>";
+                } if(arrViews[i].FolderContentItemType == 4){
+                    document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn' id='vuecl4"+i+"' onclick='objectColor(`vuecl4"+i+"`);' style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].ObjectVersion.EscapedTitleWithID+"</dd><dd> ID: "+arrViews[i].ObjectVersion.DisplayID+"</dd></dt></a>";
+                }
+                if(arrViews[i].FolderContentItemType == 2){
+                    if(!arrViews[i].PropertyFolder.Lookup){
+                        document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn' id='vuecl21"+i+"' onclick='objectColor(`vuecl21"+i+"`);' style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].PropertyFolder.DisplayValue+"</dd><dd>Valeur: "+arrViews[i].PropertyFolder.Value+"</dd></dt></a>";
+                    } 
+                    if(arrViews[i].PropertyFolder.Lookup){
+                        document.getElementById("liste-vues").innerHTML +="<a role='button' class='btn' id='vuecl22"+i+"' onclick='objectColor(`vuecl22"+i+"`);' style='text-align: left;width:100%;font-size:1.2em;background-color:#f5f5f5;margin:10px;'><dt><dd style='color:black;'>"+arrViews[i].PropertyFolder.DisplayValue+"</dd><dd>ID: "+arrViews[i].PropertyFolder.Lookup.Item+"</dd></dt></a>";
+                    }
+                }
             }
         }
     });

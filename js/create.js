@@ -20,12 +20,11 @@ function getUser(){
     var url = "http://localhost/REST/session";
     xmlhttp.onreadystatechange = function () { 
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            //console.log(this.responseText);
             var jU = JSON.parse(this.responseText);
             //fonction prend objet json et met ses valeurs dans le code html
-            document.getElementById("fname").innerHTML= "<h3>"+jU.AccountName+" (ID: "+jU.UserID+")</h3>";
-            //document.getElementById("fname").innerHTML = "<h3>"+jU.FullName+"</h3>";
-            //document.getElementById("accname").innerHTML = "<h5>"+jU.AccountName+" ID: "+jU.UserID+"</h5>";    
+            //document.getElementById("fname").innerHTML= "<h3>"+jU.AccountName+" (ID: "+jU.UserID+")</h3>";
+            document.getElementById("fname").innerHTML = "<h3>"+jU.FullName+"</h3>";
+            document.getElementById("accname").innerHTML = "<h5>"+jU.AccountName+" ID: "+jU.UserID+"</h5>";    
         }
         else {console.log("Failed to get user info.")
         ;}
@@ -60,10 +59,7 @@ function pageWelcome(){
 
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                   //
 //                      Création de factures client et fournisseur                                   //
-//                                                                                                   //
-//                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //afficher les formulaires de création de factures
@@ -246,60 +242,10 @@ function fileUP(typedoc){
     }
 }
 
-/*function fileFacture(objID, version){
-    //fonction qui upload vers l'objet
-        var fileInput = document.getElementById('fact-file');
-        console.log(fileInput.files);
-        var file = fileInput.files[0];
-        var formData = new FormData();
-        formData.append('file', file);
-
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.withCredentials = false;
-        xmlhttp.addEventListener("readystatechange", function() {
-        if(this.readyState === 4) {
-            console.log("Envoie du fichier en cours...");
-            console.log(this.responseText);
-        }
-        });  
-        //onprogressHandler doit être une fonction
-        //xmlhttp.upload.addEventListener('progress', onprogressHandler, false);
-        xmlhttp.open("POST", "http://localhost/REST/0/"+objID+"/latest/files", true);
-        xmlhttp.setRequestHeader("X-Authentication", getTokenURL());
-        xmlhttp.setRequestHeader("Content-Type", "application/json");
-        //xmlhttp.setRequestHeader("Content-Type", "multipart/form-data");
-        xmlhttp.send(formData);
-
-}*/
-
-//compatibilité du navigateur pour upload du fichier avec ajax
-/*function supportAjaxUploadWithProgress() {
-    return supportFileAPI() && supportAjaxUploadProgressEvents();
-
-    function supportFileAPI() {
-        var fi = document.createElement('INPUT');
-        fi.type = 'file';
-        return 'files' in fi;
-    };
-
-    function supportAjaxUploadProgressEvents() {
-        var xhr = new XMLHttpRequest();
-        return !! (xhr && ('upload' in xhr) && ('onprogress' in xhr.upload));
-    };
-}
-
-function compatibility(){
-    document.getElementById("comp").innerHTML = supportAjaxUploadWithProgress();
-}*/
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                   //
 //                              Création des rapports financiers                                     //
 //                  Fonction déclenchée depuis la fonction fileUP car                                //
 //                     l'upload du fichier arrive avant création objet                               //
-//                                                                                                   //
-//                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function creerRapportFin(upID, size, title, ext){
@@ -330,10 +276,7 @@ function creerRapportFin(upID, size, title, ext){
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                   //
 //                                         Création des clients                                      //
-//                                                                                                   //
-//                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -389,10 +332,7 @@ function creeClient(){
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                   //
 //                                         Création des taches                                       //
-//                                                                                                   //
-//                                                                                                   //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function creerTache(){
